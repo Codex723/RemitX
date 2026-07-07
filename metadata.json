@@ -1,8 +1,0 @@
-{
-  "name": "RemitX",
-  "description": "A cross-border remittance routing protocol and mobile-first dApp on Stellar for optimal payment paths and anchor off-ramp fees.",
-  "requestFramePermissions": [],
-  "majorCapabilities": [
-    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
-  ]
-}
