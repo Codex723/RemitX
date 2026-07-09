@@ -10,7 +10,7 @@ interface SkeletonProps {
 }
 
 export function Skeleton({ className = "", variant = "text", width, height }: SkeletonProps) {
-  const base = "skeleton inline-block";
+  const base = "skeleton block";
 
   const variants: Record<string, string> = {
     text: "h-4 w-full",
@@ -156,8 +156,8 @@ export function PageSkeleton() {
 export function LandingSkeleton() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-50">
-      {/* Nav skeleton */}
-      <div className="h-header-height flex items-center px-4 lg:px-8 border-b border-gray-200">
+      {/* Fixed Nav skeleton */}
+      <div className="h-header-height fixed top-0 right-0 left-0 z-50 flex items-center px-4 lg:px-8 bg-surface-container-lowest border-b border-gray-200">
         <div className="flex items-center gap-3 w-full">
           <Skeleton variant="circle" width="32px" height="32px" />
           <Skeleton variant="text" width="80px" height="20px" />
@@ -172,21 +172,23 @@ export function LandingSkeleton() {
           </div>
         </div>
       </div>
-      {/* Hero skeleton */}
-      <div className="max-w-6xl mx-auto px-4 lg:px-8 py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          <div className="space-y-4">
-            <Skeleton variant="text" width="120px" height="24px" />
-            <Skeleton variant="text" width="100%" height="48px" />
-            <Skeleton variant="text" width="80%" height="48px" />
-            <Skeleton variant="text" width="90%" height="20px" />
-            <div className="flex gap-3 pt-2">
-              <Skeleton variant="button" width="140px" height="44px" />
-              <Skeleton variant="button" width="120px" height="44px" />
+      {/* Hero skeleton with pt for fixed header */}
+      <div className="pt-header-height min-h-[600px] lg:min-h-[800px] flex items-center px-4 lg:px-8">
+        <div className="max-w-6xl mx-auto w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+            <div className="space-y-4">
+              <Skeleton variant="text" width="120px" height="24px" />
+              <Skeleton variant="text" width="100%" height="48px" />
+              <Skeleton variant="text" width="80%" height="48px" />
+              <Skeleton variant="text" width="90%" height="20px" />
+              <div className="flex gap-3 pt-2">
+                <Skeleton variant="button" width="140px" height="44px" />
+                <Skeleton variant="button" width="120px" height="44px" />
+              </div>
             </div>
-          </div>
-          <div className="hidden lg:block">
-            <Skeleton variant="card" height="350px" />
+            <div className="hidden lg:flex justify-center">
+              <Skeleton variant="card" height="350px" width="400px" />
+            </div>
           </div>
         </div>
       </div>
