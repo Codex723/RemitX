@@ -423,6 +423,28 @@
 }
 
 /* ============================================
+   WEB3 SIDEBAR ANIMATIONS
+   ============================================ */
+
+/* Glow pulse for active nav */
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Shimmer sweep for buttons */
+@keyframes shimmerSweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+/* Gradient border animation */
+@keyframes borderGlow {
+  0%, 100% { border-color: rgba(0, 107, 92, 0.3); }
+  50% { border-color: rgba(0, 6, 102, 0.5); }
+}
+
+/* ============================================
    MOBILE RESPONSIVENESS
    ============================================ */
 @media (max-width: 1023px) {

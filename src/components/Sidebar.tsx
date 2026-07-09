@@ -31,70 +31,107 @@ export default function Sidebar({ isOpen, onClose }: { isOpen?: boolean; onClose
       />
 
       {/* Sidebar */}
-      <aside className={`w-sidebar-width h-screen fixed left-0 top-0 bg-surface dark:bg-inverse-surface border-r border-outline-variant dark:border-outline flex flex-col py-space-lg z-50 overflow-y-auto custom-scrollbar sidebar-desktop transition-all duration-300 lg:translate-x-0 ${isOpen ? "open" : ""}`}>
-        <div className="px-space-lg mb-space-xl">
-          <Link href="/" className="flex items-center gap-space-sm group" onClick={onClose}>
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-on-primary transition-all duration-300 group-hover:shadow-lg group-hover:scale-105">
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>account_balance</span>
+      <aside className={`w-sidebar-width h-screen fixed left-0 top-0 bg-surface/80 dark:bg-inverse-surface/90 backdrop-blur-xl border-r border-outline-variant/50 dark:border-outline/30 flex flex-col py-5 z-50 overflow-y-auto custom-scrollbar sidebar-desktop transition-all duration-300 lg:translate-x-0 ${isOpen ? "open" : ""}`}>
+        {/* Logo */}
+        <div className="px-5 mb-6">
+          <Link href="/" className="flex items-center gap-2.5 group" onClick={onClose}>
+            <div className="w-9 h-9 bg-gradient-to-br from-primary to-secondary rounded-xl flex items-center justify-center text-on-primary shadow-lg shadow-primary/20 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-primary/30 group-hover:scale-105">
+              <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>account_balance</span>
             </div>
             <div>
-              <h1 className="font-headline-md text-headline-md font-bold text-primary dark:text-primary-fixed">RemitX</h1>
-              <p className="font-label-sm text-label-sm text-outline">Stellar Network</p>
+              <h1 className="text-base font-bold text-primary dark:text-primary-fixed leading-tight">RemitX</h1>
+              <p className="text-[10px] font-medium text-outline/70 dark:text-outline tracking-wider uppercase">Stellar Network</p>
             </div>
           </Link>
         </div>
 
         {/* Close button on mobile */}
         {onClose && (
-          <button onClick={onClose} className="lg:hidden absolute top-4 right-4 p-2 text-on-surface-variant hover:text-primary rounded-lg hover:bg-surface-container-low transition-all">
-            <span className="material-symbols-outlined">close</span>
+          <button onClick={onClose} className="lg:hidden absolute top-4 right-4 p-1.5 text-on-surface-variant hover:text-primary rounded-lg hover:bg-surface-container-low transition-all">
+            <span className="material-symbols-outlined text-lg">close</span>
           </button>
         )}
 
-        <nav className="flex-1 px-space-md space-y-1">
-          {navItems.map((item, index) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onClose}
-              className={`flex items-center gap-space-md px-space-md py-3 rounded-lg transition-all duration-200 group animate-fade-in-up ${
-                isActive(item.href)
-                  ? "text-primary dark:text-primary-fixed-dim font-bold border-r-4 border-primary dark:border-primary-fixed-dim bg-primary/5 dark:bg-primary-container/20"
-                  : "text-on-surface-variant dark:text-outline hover:text-primary dark:hover:text-primary-fixed-dim hover:bg-surface-container-low"
-              }`}
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              <span className={`material-symbols-outlined transition-transform duration-300 icon-bounce ${isActive(item.href) ? "text-primary" : ""}`}>{item.icon}</span>
-              <span className="font-body-md">{item.label}</span>
-              {isActive(item.href) && (
-                <span className="ml-auto w-2 h-2 rounded-full bg-primary animate-breath"></span>
-              )}
-            </Link>
-          ))}
+        {/* Navigation */}
+        <nav className="flex-1 px-3 space-y-0.5">
+          {navItems.map((item, index) => {
+            const active = isActive(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onClose}
+                className={`group relative flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 animate-fade-in-up ${
+                  active
+                    ? "text-white font-semibold"
+                    : "text-on-surface-variant/70 dark:text-outline hover:text-primary dark:hover:text-primary-fixed-dim"
+                }`}
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                {/* Active background gradient */}
+                {active && (
+                  <>
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/90 to-primary/70 rounded-xl shadow-lg shadow-primary/25" />
+                    {/* Left accent bar */}
+                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-white rounded-r-full shadow-lg shadow-white/30" />
+                    {/* Glow effect */}
+                    <div className="absolute -inset-1 bg-primary/20 rounded-xl blur-md -z-10" />
+                  </>
+                )}
+
+                {/* Hover background (non-active) */}
+                {!active && (
+                  <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 bg-gradient-to-r from-primary/5 via-primary/3 to-transparent transition-opacity duration-200" />
+                )}
+
+                {/* Icon */}
+                <span className={`relative z-10 material-symbols-outlined transition-all duration-300 ${
+                  active ? "text-white text-lg" : "text-lg group-hover:scale-110 group-hover:text-primary dark:group-hover:text-primary-fixed-dim"
+                }`}>
+                  {item.icon}
+                </span>
+
+                {/* Label */}
+                <span className={`relative z-10 text-sm transition-all duration-200 ${
+                  active ? "text-white" : "group-hover:translate-x-0.5"
+                }`}>
+                  {item.label}
+                </span>
+
+                {/* Active indicator dot */}
+                {active && (
+                  <span className="relative z-10 ml-auto w-1.5 h-1.5 rounded-full bg-white/90 shadow-sm shadow-white/50 animate-pulse" />
+                )}
+              </Link>
+            );
+          })}
         </nav>
 
-        <div className="px-space-md mt-auto pt-space-lg border-t border-outline-variant dark:border-outline space-y-2">
+        {/* Bottom section */}
+        <div className="px-3 mt-auto pt-4 border-t border-outline-variant/30 dark:border-outline/20 space-y-1">
           <Link
             href="/"
-            className="w-full bg-primary text-on-primary py-3 rounded-xl font-label-md flex items-center justify-center gap-2 hover:opacity-90 transition-all hover:shadow-lg hover:scale-[1.02] active:scale-95 ripple"
+            className="group relative flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-primary to-secondary text-white font-medium text-sm shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02] active:scale-95 transition-all duration-200 overflow-hidden"
             onClick={onClose}
           >
-            <span className="material-symbols-outlined">add_circle</span>
-            Add Funds
+            {/* Shimmer overlay */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
+            <span className="relative z-10 material-symbols-outlined text-lg">add_circle</span>
+            <span className="relative z-10">Add Funds</span>
           </Link>
           <Link
             href="#"
-            className="flex items-center gap-space-md px-space-md py-2 text-on-surface-variant hover:text-primary transition-all rounded-lg hover:bg-surface-container-low"
+            className="flex items-center gap-3 px-3 py-2 text-xs text-on-surface-variant/60 hover:text-primary rounded-xl hover:bg-primary/5 transition-all duration-200"
           >
-            <span className="material-symbols-outlined">help</span>
-            <span className="font-label-md">Support</span>
+            <span className="material-symbols-outlined text-lg">help</span>
+            <span>Support</span>
           </Link>
           <Link
             href="/"
-            className="flex items-center gap-space-md px-space-md py-2 text-on-surface-variant hover:text-error transition-all rounded-lg hover:bg-error-container/10"
+            className="flex items-center gap-3 px-3 py-2 text-xs text-on-surface-variant/60 hover:text-error rounded-xl hover:bg-error/5 transition-all duration-200"
           >
-            <span className="material-symbols-outlined">logout</span>
-            <span className="font-label-md">Sign Out</span>
+            <span className="material-symbols-outlined text-lg">logout</span>
+            <span>Sign Out</span>
           </Link>
         </div>
       </aside>
