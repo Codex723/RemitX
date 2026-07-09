@@ -5,9 +5,11 @@
  * caches them IN MEMORY for consistency across requests, and provides
  * a unified getRate() function used throughout the app.
  *
- * Data sources (free, no key):
- *   - CoinGecko API     → crypto asset prices (XLM, USDC, EURC in USD)
- *   - Frankfurter API   → forex fiat rates (NGN, EUR, GBP etc. against USD)
+ * Data sources (FREE, no key needed):
+ *   - CoinGecko API          → crypto prices (XLM, USDC, EURC in USD)
+ *   - ExchangeRate-API       → forex fiat rates (NGN, XAF, XOF, GHS,
+ *                              KES, ZAR, EUR, GBP and 150+ currencies
+ *                              against USD)
  *
  * Cache: In-memory Map with 5-minute TTL — NO DATABASE NEEDED.
  * Fallback chain: Memory cache → API fetch → "1.00"
@@ -26,7 +28,7 @@ export interface RateResult {
 }
 
 // ---------------------------------------------------------------------------
-// In-memory cache (no database dependency!)
+// In-memory cache (no database, no external service needed!)
 // ---------------------------------------------------------------------------
 
 const CACHE_TTL_MS = 300_000; // 5 minutes
@@ -99,29 +101,55 @@ async function fetchCryptoUsdRate(assetCode: string): Promise<number | null> {
 }
 
 /**
- * Frankfurter API — free forex rates, no key needed.
- * https://www.frankfurter.app/docs/
- * Returns rate for 1 USD → target currency.
+ * ExchangeRate-API — FREE forex rates, NO API KEY required.
+ * https://github.com/exchangerate-api/exchangerate-api
+ *
+ * Supports ALL African currencies: NGN, XAF, XOF, GHS, KES, ZAR, etc.
+ * Free tier: 1,500 requests/month (more than enough for on-demand caching).
+ *
+ * Returns rates for ALL currencies with USD as base, so we cache the
+ * entire response to avoid hitting the rate limit on multiple lookups.
  */
-const FRANKFURTER_BASE = "https://api.frankfurter.dev";
+const EXCHANGERATE_API = "https://api.exchangerate-api.com/v4/latest/USD";
 
-async function fetchFiatUsdRate(currencyCode: string): Promise<number | null> {
-  const cur = currencyCode.toUpperCase();
-  if (cur === "USD") return 1;
+/** Cache for the full ExchangeRate-API response (all currencies at once) */
+let exchangeRateCache: { rates: Record<string, number>; fetchedAt: number } | null = null;
+
+async function fetchAllFiatRates(): Promise<Record<string, number> | null> {
+  // Return cached full response if < 5 min old
+  if (exchangeRateCache && Date.now() - exchangeRateCache.fetchedAt < CACHE_TTL_MS) {
+    return exchangeRateCache.rates;
+  }
 
   try {
-    const url = `${FRANKFURTER_BASE}/latest?from=USD&to=${cur}`;
-    const res = await fetch(url, {
+    const res = await fetch(EXCHANGERATE_API, {
       signal: AbortSignal.timeout(8_000),
       headers: { Accept: "application/json" },
     });
     if (!res.ok) return null;
     const json = await res.json();
-    const rate = json.rates?.[cur];
-    return typeof rate === "number" ? rate : null;
+    if (!json.rates || typeof json.rates !== "object") return null;
+
+    exchangeRateCache = {
+      rates: json.rates as Record<string, number>,
+      fetchedAt: Date.now(),
+    };
+    return exchangeRateCache.rates;
   } catch {
-    return null;
+    // Return stale cache if available
+    return exchangeRateCache?.rates ?? null;
   }
+}
+
+async function fetchFiatUsdRate(currencyCode: string): Promise<number | null> {
+  const cur = currencyCode.toUpperCase();
+  if (cur === "USD") return 1;
+
+  const allRates = await fetchAllFiatRates();
+  if (!allRates) return null;
+
+  const rate = allRates[cur];
+  return typeof rate === "number" ? rate : null;
 }
 
 // ---------------------------------------------------------------------------
@@ -178,6 +206,21 @@ async function resolveRateThroughUsd(
 }
 
 // ---------------------------------------------------------------------------
+// Hardcoded fallback rates (when APIs are unreachable)
+// ---------------------------------------------------------------------------
+
+const FALLBACK_RATES: Record<string, Record<string, string>> = {
+  XLM: { USD: "0.1042", USDC: "0.1040", EURC: "0.0960", NGN: "155.50" },
+  USDC: { USD: "1.00", XLM: "9.62", EURC: "0.92", NGN: "1495.00" },
+  EURC: { USD: "1.09", XLM: "10.48", USDC: "1.09", NGN: "1629.55" },
+  USD: { NGN: "1495.00", EUR: "0.92", XAF: "603.57", XOF: "603.57", GHS: "15.30", KES: "129.50", ZAR: "18.20" },
+};
+
+function getFallbackRate(from: string, to: string): string | null {
+  return FALLBACK_RATES[from]?.[to] ?? null;
+}
+
+// ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
@@ -187,7 +230,8 @@ async function resolveRateThroughUsd(
  * Resolution order:
  *   1. Return fresh in-memory cache (< 5 min) immediately
  *   2. Fetch from live APIs, cache the result, return it
- *   3. Return "1.00" as last resort (graceful degradation)
+ *   3. Return hardcoded fallback rate (keeps prices realistic when offline)
+ *   4. Return "1.00" as absolute last resort
  */
 export async function getRate(
   fromAsset: string,
@@ -222,7 +266,21 @@ export async function getRate(
     };
   }
 
-  // ---- Step 3: Absolute last resort ----
+  // ---- Step 3: Hardcoded fallback ----
+  const fallback = getFallbackRate(from, to);
+  if (fallback) {
+    console.warn(`[rates] Using hardcoded fallback for ${from}→${to}`);
+    setCachedRate(from, to, fallback);
+    return {
+      rate: fallback,
+      fromAsset: from,
+      toAsset: to,
+      fetchedAt: new Date().toISOString(),
+      source: "fallback",
+    };
+  }
+
+  // ---- Step 4: Absolute last resort ----
   console.warn(
     `[rates] No rate available for ${from}→${to}, returning 1.00`
   );
@@ -237,7 +295,7 @@ export async function getRate(
 
 /**
  * Refresh all known rate pairs in the cache.
- * Warm in-memory cache so first user request hits cache.
+ * Can be called on app startup or via cron.
  */
 export async function refreshAllRates(): Promise<void> {
   const pairs: [string, string][] = [
@@ -275,8 +333,7 @@ export async function refreshAllRates(): Promise<void> {
     } else {
       failCount++;
     }
-    // Small delay to avoid rate limiting free APIs
-    await new Promise((r) => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, 200));
   }
 
   console.log(
