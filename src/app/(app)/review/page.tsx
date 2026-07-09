@@ -1,25 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Keypair, TransactionBuilder } from "@stellar/stellar-sdk";
+import { useEffect } from "react";
+
+// NOTE: This page is static/mocked for the foundation build.
+// TODO(contributor): Replace handleConfirm with a real flow:
+// 1. Receive transaction data (XDR + transactionId) via route state or short-lived session
+// 2. Sign the XDR client-side (via Freighter or testnet-localStorage shortcut)
+// 3. Call POST /api/stellar/submit with { signedXdr, transactionId }
+// 4. Display the real stellarTxHash and status from the response
 
 export default function ReviewPage() {
-  const router = useRouter();
-  const [txData, setTxData] = useState<any>(null);
-  const [status, setStatus] = useState<"idle" | "validating" | "confirmed" | "failed">("idle");
-  const [txHash, setTxHash] = useState("");
-  const [error, setError] = useState("");
-
   useEffect(() => {
-    // Load transaction data from sessionStorage
-    const stored = sessionStorage.getItem("reviewTx");
-    if (stored) {
-      setTxData(JSON.parse(stored));
-    } else {
-      setError("No transaction data found. Please start from the Send page.");
-    }
-
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -36,95 +27,25 @@ export default function ReviewPage() {
     return () => observer.disconnect();
   }, []);
 
-  // TESTNET-ONLY SHORTCUT: Sign with a key derived from the server's returned secret
-  // TODO(product): Replace with proper wallet integration (Freighter) for mainnet.
-  // In this testnet pass, the secret key was returned to the client during registration
-  // and stored in localStorage for convenience. This is NOT production-safe.
-  async function handleConfirm() {
-    if (!txData) return;
-    setStatus("validating");
-    setError("");
-
+  const handleConfirm = () => {
     const btn = document.getElementById("confirmBtn") as HTMLButtonElement;
     const progressBar = document.getElementById("progressBar");
     const hashEl = document.getElementById("txHash");
+    if (!btn || !progressBar || !hashEl) return;
 
-    if (btn) {
-      btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-sm">sync</span> Validating...';
-      btn.disabled = true;
-      btn.classList.add("opacity-80", "cursor-not-allowed");
-    }
-    if (progressBar) (progressBar as HTMLElement).style.width = "100%";
-    if (hashEl) (hashEl as HTMLElement).textContent = "VALIDATING_ON_CHAIN...";
+    btn.innerHTML = '<span class="material-symbols-outlined animate-spin text-sm">sync</span> Validating...';
+    btn.disabled = true;
+    btn.classList.add("opacity-80", "cursor-not-allowed");
+    (progressBar as HTMLElement).style.width = "100%";
+    (hashEl as HTMLElement).textContent = "VALIDATING_ON_CHAIN...";
 
-    try {
-      // Sign the XDR client-side (testnet-only shortcut)
-      // In production, the user signs via Freighter or another wallet
-      const NETWORK_PASSPHRASE = "Test SDF Network ; September 2015";
-      const secretKeyStr = localStorage.getItem("remitx_stellar_secret");
-
-      if (!secretKeyStr) {
-        throw new Error("Stellar secret key not found. Please re-register to get a new key.");
-      }
-
-      const keypair = Keypair.fromSecret(secretKeyStr);
-      const transaction = TransactionBuilder.fromXDR(txData.xdr, NETWORK_PASSPHRASE);
-      transaction.sign(keypair);
-      const signedXdr = transaction.toXDR();
-
-      // Submit to the server
-      const res = await fetch("/api/stellar/submit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          signedXdr,
-          transactionId: txData.transactionId,
-        }),
-      });
-
-      const result = await res.json();
-
-      if (!result.success) {
-        throw new Error(result.error || "Submission failed");
-      }
-
-      setStatus("confirmed");
-      setTxHash(result.data.stellarTxHash);
-
-      if (btn) {
-        btn.innerHTML = '<span class="material-symbols-outlined text-sm">check_circle</span> Transaction Broadcast';
-        btn.classList.remove("bg-secondary");
-        btn.classList.add("bg-primary");
-      }
-      if (hashEl) {
-        (hashEl as HTMLElement).textContent = result.data.stellarTxHash;
-      }
-    } catch (err: any) {
-      setStatus("failed");
-      setError(err.message || "Transaction failed");
-
-      if (btn) {
-        btn.innerHTML = '<span class="material-symbols-outlined text-sm">error</span> Failed - Try Again';
-        btn.disabled = false;
-        btn.classList.remove("opacity-80", "cursor-not-allowed");
-      }
-    }
-  }
-
-  if (error && !txData) {
-    return (
-      <main className="min-h-screen bg-gray-50/50 flex items-center justify-center">
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 max-w-md text-center">
-          <span className="material-symbols-outlined text-4xl text-red-400 mb-3">error_outline</span>
-          <h2 className="text-lg font-bold text-gray-800 mb-2">No Transaction Data</h2>
-          <p className="text-sm text-gray-500 mb-4">{error}</p>
-          <button onClick={() => router.push("/send")} className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-semibold">
-            Go to Send
-          </button>
-        </div>
-      </main>
-    );
-  }
+    setTimeout(() => {
+      btn.innerHTML = '<span class="material-symbols-outlined text-sm">check_circle</span> Transaction Broadcast';
+      btn.classList.remove("bg-secondary");
+      btn.classList.add("bg-primary");
+      (hashEl as HTMLElement).textContent = "0x8a73...92b4";
+    }, 3000);
+  };
 
   return (
     <main className="min-h-screen bg-gray-50/50">
@@ -152,30 +73,27 @@ export default function ReviewPage() {
               </div>
               <div className="text-center py-6 border-b border-gray-100">
                 <p className="text-[10px] text-gray-400 uppercase font-bold mb-1">Total to Recipient</p>
-                <h3 className="text-2xl lg:text-3xl font-bold text-gray-800">
-                  {txData?.toAmount || "0.00"} <span className="text-sm text-gray-400 font-semibold">{txData?.toAsset || ""}</span>
-                </h3>
-                <p className="text-xs text-gray-400 mt-1">
-                  ≈ {txData?.fromAmount} {txData?.fromAsset}
-                </p>
+                <h3 className="text-2xl lg:text-3xl font-bold text-gray-800">1,450.00 <span className="text-sm text-gray-400 font-semibold">EUR</span></h3>
+                <p className="text-xs text-gray-400 mt-1">≈ 1,572.45 USD</p>
               </div>
               <div className="space-y-3 py-4">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-500">Sending Amount</span>
-                  <span className="font-semibold text-gray-800">{txData?.fromAmount} {txData?.fromAsset}</span>
-                </div>
+                <div className="flex justify-between items-center text-sm"><span className="text-gray-500">Sending Amount</span><span className="font-semibold text-gray-800">1,585.00 USD</span></div>
                 <div className="flex justify-between items-center text-sm">
                   <div className="flex items-center gap-1"><span className="text-gray-500">Network Fee</span><span className="material-symbols-outlined text-sm text-gray-300 cursor-help">info</span></div>
-                  <span className="font-semibold text-gray-800">~0.00001 XLM</span>
+                  <span className="font-semibold text-gray-800">0.00001 XLM</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <div className="flex items-center gap-1"><span className="text-gray-500">Anchor Fee</span><span className="material-symbols-outlined text-sm text-gray-300">info</span></div>
+                  <span className="font-semibold text-gray-800">12.55 USD</span>
                 </div>
                 <div className="flex justify-between items-center text-sm text-secondary font-bold">
                   <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm">trending_up</span>Exchange Rate</span>
-                  {txData && <span>1 {txData.fromAsset} ≈ {txData.toAmount && txData.fromAmount ? (parseFloat(txData.toAmount) / parseFloat(txData.fromAmount)).toFixed(4) : "?"} {txData.toAsset}</span>}
+                  <span>1 USD = 0.9221 EUR</span>
                 </div>
               </div>
               <div className="bg-gray-50 rounded-lg p-3 flex justify-between items-center border border-gray-200">
                 <span className="text-sm font-bold text-primary">Total Cost</span>
-                <span className="text-sm font-bold text-primary">{txData?.fromAmount} {txData?.fromAsset}</span>
+                <span className="text-sm font-bold text-primary">1,585.00 USD</span>
               </div>
             </div>
 
@@ -194,66 +112,43 @@ export default function ReviewPage() {
             {/* Recipient Card */}
             <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-200 opacity-0 animate-on-scroll" style={{ animationDelay: "100ms" }}>
               <h4 className="text-[10px] text-gray-400 font-bold uppercase mb-3">Recipient Details</h4>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 font-bold">MH</div>
+                <div><p className="text-sm font-bold text-gray-800">Marcus Halloway</p><p className="text-xs text-gray-400">Berlin, Germany</p></div>
+              </div>
               <div className="space-y-3">
                 <div>
                   <label className="text-[10px] text-gray-400 font-bold block mb-1">Stellar Public Key</label>
                   <div className="bg-gray-50 rounded-lg px-3 py-2 flex items-center justify-between group cursor-pointer hover:bg-gray-100 transition-all">
-                    <code className="text-[10px] text-gray-500 truncate mr-2">
-                      {txData?.recipientAddress?.substring(0, 15)}...{txData?.recipientAddress?.slice(-8) || ""}
-                    </code>
-                    <button
-                      onClick={() => navigator.clipboard.writeText(txData?.recipientAddress || "")}
-                      className="material-symbols-outlined text-sm text-gray-400 group-hover:text-primary transition-colors"
-                    >
-                      content_copy
-                    </button>
+                    <code className="text-[10px] text-gray-500 truncate mr-2">GCV...X2YQ56N</code>
+                    <span className="material-symbols-outlined text-sm text-gray-400 group-hover:text-primary transition-colors">content_copy</span>
                   </div>
+                </div>
+                <div>
+                  <label className="text-[10px] text-gray-400 font-bold block mb-1">Memo (Optional)</label>
+                  <p className="text-xs italic text-gray-500">Rent - Apartment 4B</p>
                 </div>
               </div>
             </div>
 
             {/* Action Buttons */}
             <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-200 space-y-3 opacity-0 animate-on-scroll" style={{ animationDelay: "200ms" }}>
-              <button
-                id="confirmBtn"
-                className={`w-full text-white text-sm font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-800 transition-all shadow-md active:shadow-inner ${
-                  status === "confirmed" ? "bg-primary" : "bg-secondary"
-                }`}
-                onClick={handleConfirm}
-                disabled={status === "validating" || status === "confirmed"}
-              >
-                {status === "validating" ? (
-                  <><span className="material-symbols-outlined animate-spin text-sm">sync</span> Validating...</>
-                ) : status === "confirmed" ? (
-                  <><span className="material-symbols-outlined text-sm">check_circle</span> Confirmed</>
-                ) : (
-                  <><span className="material-symbols-outlined text-sm">send</span> Confirm & Send</>
-                )}
+              <button id="confirmBtn" className="w-full bg-secondary text-white text-sm font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-800 transition-all shadow-md active:shadow-inner" onClick={handleConfirm}>
+                <span className="material-symbols-outlined text-sm">send</span> Confirm & Send
               </button>
-              {status === "idle" && (
-                <button className="w-full bg-gray-50 text-gray-500 text-xs font-semibold py-3 rounded-xl border border-gray-200 hover:bg-gray-100 transition-all active:scale-95">
-                  Cancel & Edit
-                </button>
-              )}
-              {error && status === "failed" && (
-                <p className="text-xs text-red-500 bg-red-50 p-2 rounded-lg">{error}</p>
-              )}
-              {(status === "validating" || status === "confirmed") && (
-                <div className="pt-2">
-                  <div className="flex items-center gap-1.5 text-gray-400 mb-1.5">
-                    <span className="material-symbols-outlined text-sm">link</span>
-                    <span id="txHash" className="text-[10px]">
-                      {status === "validating" ? "VALIDATING_ON_CHAIN..." : txHash}
-                    </span>
-                  </div>
-                  <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
-                    <div className={`h-full ${status === "confirmed" ? "bg-primary" : "bg-secondary"} w-full transition-all duration-[3000ms]`} id="progressBar"></div>
-                  </div>
-                  {txHash && (
-                    <p className="text-[8px] text-gray-400 mt-1.5 font-mono">HASH: {txHash}</p>
-                  )}
+              <button className="w-full bg-gray-50 text-gray-500 text-xs font-semibold py-3 rounded-xl border border-gray-200 hover:bg-gray-100 transition-all active:scale-95">
+                Cancel & Edit
+              </button>
+              <div className="pt-2">
+                <div className="flex items-center gap-1.5 text-gray-400 mb-1.5">
+                  <span className="material-symbols-outlined text-sm">link</span>
+                  <span id="txHash" className="text-[10px]">Transaction Hash Placeholder</span>
                 </div>
-              )}
+                <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
+                  <div className="h-full bg-primary w-0 transition-all duration-[3000ms]" id="progressBar"></div>
+                </div>
+                <p className="text-[8px] text-gray-400 mt-1.5 font-mono">HASH: PENDING_VALIDATION...</p>
+              </div>
             </div>
 
             {/* Map Widget */}
@@ -261,9 +156,7 @@ export default function ReviewPage() {
               <div className="absolute inset-0 bg-primary/10 pointer-events-none"></div>
               <div className="absolute bottom-2.5 left-2.5 bg-white/90 px-2.5 py-1 rounded-full flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                <span className="text-[10px] font-semibold text-gray-700">
-                  Route: {txData?.fromAsset || "?"} → {txData?.toAsset || "?"}
-                </span>
+                <span className="text-[10px] font-semibold text-gray-700">Route: USD → EUR</span>
               </div>
             </div>
           </div>

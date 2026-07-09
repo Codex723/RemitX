@@ -1,5 +1,12 @@
 // Prisma schema for RemitX
 // Database: CockroachDB (Postgres-compatible)
+//
+// NOTE: CockroachDB is Postgres-compatible but has some differences:
+// - No `@default(autoincrement())` — use cuid() or uuid() instead
+// - No `@updatedAt` on enum-adjacent fields — handled manually
+// - CockroachDB 23.1+ supports most Prisma features natively
+// - If you hit "relation requires a foreign key constraint" errors,
+//   ensure CockroachDB is running with `--enable-foreign-key-constraints`
 
 generator client {
   provider = "prisma-client"
@@ -23,16 +30,24 @@ enum TransactionStatus {
   failed
 }
 
-model User {
-  id             String    @id @default(cuid())
-  email          String    @unique
-  passwordHash   String
-  stellarPublicKey String? @unique
-  kycStatus      KycStatus @default(pending)
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+enum EscrowStatus {
+  locked
+  released
+  refunded
+  expired
+}
 
-  transactions   Transaction[]
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  passwordHash     String
+  stellarPublicKey String?   @unique
+  kycStatus        KycStatus @default(pending)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  transactions     Transaction[]
+  escrows          Escrow[]
 
   @@map("users")
 }
@@ -46,13 +61,14 @@ model Transaction {
   toAmount         String?
   recipientAddress String
   stellarTxHash    String?
+  escrowId         String?           // links to Escrow.id if this transaction uses the escrow contract
   status           TransactionStatus @default(pending)
-  xdr              String?           // unsigned XDR for client-side signing
   createdAt        DateTime          @default(now())
   confirmedAt      DateTime?
   updatedAt        DateTime          @updatedAt
 
   user             User              @relation(fields: [userId], references: [id])
+  escrow           Escrow?           @relation(fields: [escrowId], references: [id])
 
   @@index([userId])
   @@index([status])
@@ -68,4 +84,27 @@ model Rate {
 
   @@unique([fromAsset, toAsset])
   @@map("rates")
+}
+
+model Escrow {
+  id               String       @id @default(cuid())
+  transactionId    String       @unique // one-to-one with Transaction
+  contractAddress  String       // Soroban contract address on Stellar
+  senderAddress    String       // Stellar public key of the sender
+  recipientAddress String       // Stellar public key of the recipient
+  amount           String       // stored as string to avoid precision loss
+  asset            String       // asset code (e.g. "USDC", "XLM")
+  status           EscrowStatus @default(locked)
+  depositTxHash    String?      // Stellar tx hash for the deposit to the contract
+  releaseTxHash    String?      // Stellar tx hash for the release from the contract
+  createdAt        DateTime     @default(now())
+  expiresAt        DateTime     // when the escrow expires and can be refunded
+  updatedAt        DateTime     @updatedAt
+
+  transaction      Transaction  @relation(fields: [transactionId], references: [id])
+
+  @@index([senderAddress])
+  @@index([recipientAddress])
+  @@index([status])
+  @@map("escrows")
 }

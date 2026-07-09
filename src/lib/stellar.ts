@@ -1,13 +1,4 @@
-import {
-  Networks,
-  Keypair,
-  TransactionBuilder,
-  Operation,
-  Asset,
-  BASE_FEE,
-  Horizon,
-  Memo,
-} from "@stellar/stellar-sdk";
+import { Networks, Keypair, Horizon } from "@stellar/stellar-sdk";
 
 const NETWORK = process.env.STELLAR_NETWORK || "testnet";
 const HORIZON_URL = process.env.STELLAR_HORIZON_URL || "https://horizon-testnet.stellar.org";
@@ -15,75 +6,46 @@ const NETWORK_PASSPHRASE = NETWORK === "testnet" ? Networks.TESTNET : Networks.P
 
 export const server = new Horizon.Server(HORIZON_URL);
 
-/** Map a currency code to a Stellar Asset */
-export function assetFromCode(code: string): Asset {
-  const upper = code.toUpperCase();
-  // Native XLM
-  if (upper === "XLM" || upper === "NATIVE") return Asset.native();
-  // TODO(product): For non-native assets, we'd need the issuing anchor's public key.
-  // For testnet, we use the known testnet anchors or mock with the source account.
-  // This is a stub — in production, resolve via SEP-01 or a configured anchor list.
-  return Asset.native();
-}
+// ---------------------------------------------------------------------------
+// Stellar Integration — Foundation Skeleton
+//
+// These functions have correct signatures and import setup, but their
+// implementations are stubbed. They return mock responses so the API routes
+// compile and respond without crashing, but they do NOT interact with the
+// real Stellar network.
+//
+// TODO(contributor): Replace each stub with a real Horizon/RPC call.
+// See individual TODOs below.
+// ---------------------------------------------------------------------------
 
 /** Generate a new Stellar keypair and fund via Friendbot (testnet only) */
 export async function createTestnetAccount(): Promise<{
   publicKey: string;
   secretKey: string;
 }> {
+  // TODO(contributor): Generate a Keypair.random(), fund via Friendbot
+  // (https://friendbot.stellar.org?addr=<publicKey> for testnet),
+  // return the publicKey and secretKey. Do NOT store the secretKey server-side
+  // in production — return it to the client once so the user can save it.
+  console.warn("[STUB] createTestnetAccount returning mock keypair");
   const keypair = Keypair.random();
-
-  if (NETWORK === "testnet") {
-    try {
-      await fetch(
-        `https://friendbot.stellar.org?addr=${keypair.publicKey()}`
-      );
-    } catch (err) {
-      console.warn("Friendbot funding failed (testnet may be rate-limited):", err);
-    }
-  }
-
   return {
     publicKey: keypair.publicKey(),
     secretKey: keypair.secret(),
   };
 }
 
-// Fallback rate map for when Horizon path-finding is unavailable.
-// TODO(product): Replace with a proper rate feed (SEP-30, oracle, or anchor API).
-const FALLBACK_RATES: Record<string, Record<string, string>> = {
-  USD: { NGN: "1580.00", EUR: "0.92", GBP: "0.79", PHP: "58.50" },
-  EUR: { USD: "1.09", NGN: "1717.00", GBP: "0.86", PHP: "63.50" },
-  GBP: { USD: "1.27", EUR: "1.16", NGN: "2000.00", PHP: "74.00" },
-  NGN: { USD: "0.00063", EUR: "0.00058", GBP: "0.00050", PHP: "0.037" },
-  PHP: { USD: "0.017", EUR: "0.016", GBP: "0.014", NGN: "27.00" },
-};
+// TODO(contributor): implement Horizon polling or streaming to resolve
+// stuck pending transactions. For now, transactions that don't reach the
+// submit endpoint will remain in "pending" status indefinitely.
 
-/** Fetch a path-payment rate from Horizon, falling back to static rates */
+/** Fetch a path-payment rate from Horizon */
 export async function fetchRate(from: string, to: string): Promise<string> {
-  const fromAsset = assetFromCode(from);
-  const toAsset = assetFromCode(to);
-  const amount = "1";
-
-  try {
-    const paths = await server
-      .strictSendPaths(fromAsset, amount, [toAsset])
-      .call();
-
-    if (paths.records.length > 0) {
-      const destAmount = paths.records[0].destination_amount;
-      // Calculate rate: destAmount / amount
-      return destAmount;
-    }
-  } catch (err) {
-    console.warn("Horizon path-finding failed, using fallback rates:", err);
-  }
-
-  // Fallback
-  const fallback = FALLBACK_RATES[from.toUpperCase()]?.[to.toUpperCase()];
-  if (fallback) return fallback;
-
-  throw new Error(`No rate available for ${from} -> ${to}`);
+  // TODO(contributor): Call server.strictSendPaths() or server.strictReceivePaths()
+  // to get a live quote from Horizon. Cache the result in the Rate table
+  // for ~30 seconds. Fall back to a hardcoded rate map if Horizon is unreachable.
+  console.warn(`[STUB] fetchRate returning mock rate for ${from}->${to}`);
+  return "1.00";
 }
 
 /** Build a path_payment_strict_send transaction and return unsigned XDR */
@@ -95,33 +57,13 @@ export async function buildSendTransaction(params: {
   toAmount: string;
   recipientAddress: string;
 }): Promise<string> {
-  const { sourcePublicKey, fromAsset, toAsset, fromAmount, toAmount, recipientAddress } = params;
-
-  // Validate recipient is a valid Stellar address
-  if (!Keypair.fromPublicKey(recipientAddress)) {
-    throw new Error("Invalid recipient Stellar address");
-  }
-
-  const sourceAccount = await server.loadAccount(sourcePublicKey);
-
-  const transaction = new TransactionBuilder(sourceAccount, {
-    fee: BASE_FEE,
-    networkPassphrase: NETWORK_PASSPHRASE,
-  })
-    .addOperation(
-      Operation.pathPaymentStrictSend({
-        sendAsset: assetFromCode(fromAsset),
-        sendAmount: fromAmount,
-        destination: recipientAddress,
-        destAsset: assetFromCode(toAsset),
-        destMin: toAmount,
-      })
-    )
-    .addMemo(Memo.text("RemitX Transfer"))
-    .setTimeout(300)
-    .build();
-
-  return transaction.toXDR();
+  // TODO(contributor): 
+  // 1. Load the source account via server.loadAccount(sourcePublicKey)
+  // 2. Build a TransactionBuilder with Operation.pathPaymentStrictSend()
+  // 3. Return the unsigned XDR (transaction.toXDR())
+  // 4. Handle insufficient balance by checking source account balances first
+  console.warn("[STUB] buildSendTransaction returning mock XDR");
+  return "AAAAAgAAAAB...mock-xdr...AAAAA==";
 }
 
 /** Submit a signed XDR to Horizon */
@@ -129,20 +71,15 @@ export async function submitTransaction(signedXdr: string): Promise<{
   hash: string;
   status: "confirmed" | "failed";
 }> {
-  try {
-    const envelope = (await import("@stellar/stellar-sdk")).TransactionBuilder.fromXDR(
-      signedXdr,
-      NETWORK_PASSPHRASE
-    );
-
-    const result = await server.submitTransaction(envelope);
-    return {
-      hash: result.hash,
-      status: "confirmed",
-    };
-  } catch (err: any) {
-    // Extract the result code from Horizon error
-    const message = err?.response?.data?.extras?.result_codes?.transaction || err?.message || "Unknown error";
-    throw new Error(`Transaction failed: ${message}`);
-  }
+  // TODO(contributor):
+  // 1. Parse the XDR with TransactionBuilder.fromXDR(signedXdr, NETWORK_PASSPHRASE)
+  // 2. Submit via server.submitTransaction()
+  // 3. Return { hash: result.hash, status: "confirmed" } on success
+  // 4. On failure, extract the error code from err.response.data.extras.result_codes
+  //    and throw a descriptive error
+  console.warn("[STUB] submitTransaction returning mock result");
+  return {
+    hash: "0000000000000000000000000000000000000000000000000000000000000000",
+    status: "confirmed",
+  };
 }

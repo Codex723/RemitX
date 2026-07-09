@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!user.stellarPublicKey) {
-      return errorResponse("User has no Stellar account. Please re-register.", 400);
+      return errorResponse("User has no Stellar account. Create one via /api/stellar/account first.", 400);
     }
 
     const body = await request.json();
@@ -24,8 +24,6 @@ export async function POST(request: NextRequest) {
     }
 
     const { fromAsset, toAsset, amount, recipientAddress } = parsed.data;
-    const upperFrom = fromAsset.toUpperCase();
-    const upperTo = toAsset.toUpperCase();
 
     // Validate amount > 0
     const amountNum = parseFloat(amount);
@@ -33,39 +31,41 @@ export async function POST(request: NextRequest) {
       return errorResponse("Amount must be a positive number", 400);
     }
 
-    // Fetch the rate to calculate destination amount
-    const rate = await fetchRate(upperFrom, upperTo);
+    // TODO(contributor):
+    // 1. Call fetchRate() to get the live rate
+    // 2. Calculate the destination amount
+    // 3. Call buildSendTransaction() to get unsigned XDR
+    // 4. Store the transaction in the DB with status "pending"
+    // 5. Handle insufficient balance — check the source account's
+    //    balances on Horizon before building
+    const rate = await fetchRate(fromAsset.toUpperCase(), toAsset.toUpperCase());
     const toAmount = (amountNum * parseFloat(rate)).toFixed(2);
-
-    // Build the unsigned transaction
     const xdr = await buildSendTransaction({
       sourcePublicKey: user.stellarPublicKey,
-      fromAsset: upperFrom,
-      toAsset: upperTo,
+      fromAsset: fromAsset.toUpperCase(),
+      toAsset: toAsset.toUpperCase(),
       fromAmount: amount,
       toAmount,
       recipientAddress,
     });
 
-    // Create a transaction record
     const transaction = await db.transaction.create({
       data: {
         userId: user.id,
-        fromAsset: upperFrom,
-        toAsset: upperTo,
+        fromAsset: fromAsset.toUpperCase(),
+        toAsset: toAsset.toUpperCase(),
         fromAmount: amount,
         toAmount,
         recipientAddress,
         status: "pending",
-        xdr,
       },
     });
 
     return successResponse({
       transactionId: transaction.id,
       xdr,
-      fromAsset: upperFrom,
-      toAsset: upperTo,
+      fromAsset: fromAsset.toUpperCase(),
+      toAsset: toAsset.toUpperCase(),
       fromAmount: amount,
       toAmount,
       recipientAddress,
@@ -75,7 +75,6 @@ export async function POST(request: NextRequest) {
     if (err.message?.includes("Invalid recipient")) {
       return errorResponse(err.message, 400);
     }
-    // TODO(product): Check if insufficient balance by inspecting Horizon account balances
     return errorResponse(err.message || "Failed to build transaction", 500);
   }
 }

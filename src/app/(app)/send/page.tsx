@@ -1,43 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+
+// NOTE: This page is static/mocked for the foundation build.
+// TODO(contributor): Replace the hardcoded exchangeRate with a real call to
+// GET /api/stellar/rate. Call POST /api/stellar/send on "Continue to Review",
+// pass the returned transaction data to the Review page.
 
 export default function SendMoneyPage() {
-  const router = useRouter();
   const [amount, setAmount] = useState("1000.00");
-  const [fromAsset, setFromAsset] = useState("USD");
-  const [toAsset, setToAsset] = useState("EUR");
-  const [recipientAddress, setRecipientAddress] = useState("");
-  const [exchangeRate, setExchangeRate] = useState<number | null>(null);
-  const [rateLoading, setRateLoading] = useState(false);
-  const [rateError, setRateError] = useState("");
-  const [sending, setSending] = useState(false);
-  const [sendError, setSendError] = useState("");
-
-  const converted = exchangeRate ? (parseFloat(amount) || 0) * exchangeRate : 0;
-
-  // Fetch exchange rate
-  useEffect(() => {
-    async function fetchRate() {
-      setRateLoading(true);
-      setRateError("");
-      try {
-        const res = await fetch(`/api/stellar/rate?from=${fromAsset}&to=${toAsset}`);
-        const data = await res.json();
-        if (data.success) {
-          setExchangeRate(parseFloat(data.data.rate));
-        } else {
-          setRateError(data.error || "Failed to fetch rate");
-        }
-      } catch {
-        setRateError("Network error fetching rate");
-      } finally {
-        setRateLoading(false);
-      }
-    }
-    fetchRate();
-  }, [fromAsset, toAsset]);
+  const exchangeRate = 0.8425;
+  const converted = (parseFloat(amount) || 0) * exchangeRate;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -55,36 +28,6 @@ export default function SendMoneyPage() {
     document.querySelectorAll(".animate-on-scroll").forEach((el) => observer.observe(el));
     return () => observer.disconnect();
   }, []);
-
-  async function handleContinue() {
-    setSendError("");
-    setSending(true);
-    try {
-      // Call API to build the transaction
-      const res = await fetch("/api/stellar/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          fromAsset,
-          toAsset,
-          amount,
-          recipientAddress,
-        }),
-      });
-      const data = await res.json();
-      if (!data.success) {
-        setSendError(data.error || "Failed to build transaction");
-        return;
-      }
-      // Navigate to review with transaction data in sessionStorage
-      sessionStorage.setItem("reviewTx", JSON.stringify(data.data));
-      router.push("/review");
-    } catch {
-      setSendError("Network error. Please try again.");
-    } finally {
-      setSending(false);
-    }
-  }
 
   return (
     <main className="min-h-screen bg-gray-50/50">
@@ -106,46 +49,23 @@ export default function SendMoneyPage() {
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-gray-500 ml-1">You Send</label>
                   <div className="flex items-stretch border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-all shadow-sm">
-                    <input
-                      className="flex-1 px-4 py-3.5 border-none text-lg font-bold focus:ring-0 outline-none"
-                      placeholder="0.00"
-                      type="number"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                    />
-                    <select
-                      value={fromAsset}
-                      onChange={(e) => setFromAsset(e.target.value)}
-                      className="bg-gray-50 flex items-center px-3 gap-2 cursor-pointer hover:bg-gray-100 transition-colors border-l border-gray-200 text-sm font-semibold text-gray-700 outline-none"
-                    >
-                      <option value="USD">USD</option>
-                      <option value="EUR">EUR</option>
-                      <option value="GBP">GBP</option>
-                      <option value="NGN">NGN</option>
-                      <option value="PHP">PHP</option>
-                    </select>
+                    <input className="flex-1 px-4 py-3.5 border-none text-lg font-bold focus:ring-0 outline-none" placeholder="0.00" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} />
+                    <div className="bg-gray-50 flex items-center px-3 gap-2 cursor-pointer hover:bg-gray-100 transition-colors border-l border-gray-200">
+                      <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center text-white text-[8px] font-bold">US</div>
+                      <span className="text-sm font-semibold text-gray-700">USD</span>
+                      <span className="material-symbols-outlined text-sm text-gray-400">expand_more</span>
+                    </div>
                   </div>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-gray-500 ml-1">Recipient Gets</label>
                   <div className="flex items-stretch border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-primary/20 transition-all shadow-sm">
-                    <input
-                      className="flex-1 px-4 py-3.5 border-none text-lg font-bold bg-gray-50 focus:ring-0 text-gray-400 outline-none"
-                      readOnly
-                      type="number"
-                      value={rateLoading ? "Loading..." : converted.toFixed(2)}
-                    />
-                    <select
-                      value={toAsset}
-                      onChange={(e) => setToAsset(e.target.value)}
-                      className="bg-gray-50 flex items-center px-3 gap-2 cursor-pointer hover:bg-gray-100 transition-colors border-l border-gray-200 text-sm font-semibold text-gray-700 outline-none"
-                    >
-                      <option value="EUR">EUR</option>
-                      <option value="USD">USD</option>
-                      <option value="GBP">GBP</option>
-                      <option value="NGN">NGN</option>
-                      <option value="PHP">PHP</option>
-                    </select>
+                    <input className="flex-1 px-4 py-3.5 border-none text-lg font-bold bg-gray-50 focus:ring-0 text-gray-400 outline-none" readOnly type="number" value={converted.toFixed(2)} />
+                    <div className="bg-gray-50 flex items-center px-3 gap-2 cursor-pointer hover:bg-gray-100 transition-colors border-l border-gray-200">
+                      <div className="w-5 h-5 rounded-full bg-secondary flex items-center justify-center text-white text-[8px] font-bold">EU</div>
+                      <span className="text-sm font-semibold text-gray-700">EUR</span>
+                      <span className="material-symbols-outlined text-sm text-gray-400">expand_more</span>
+                    </div>
                   </div>
                 </div>
                 <hr className="border-gray-100" />
@@ -155,15 +75,13 @@ export default function SendMoneyPage() {
                     <div className="space-y-1.5">
                       <label className="text-xs font-semibold text-gray-500 ml-1">Stellar Address</label>
                       <div className="relative">
-                        <input
-                          className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 transition-all pl-10 text-sm"
-                          placeholder="G... Stellar public key"
-                          type="text"
-                          value={recipientAddress}
-                          onChange={(e) => setRecipientAddress(e.target.value)}
-                        />
+                        <input className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 transition-all pl-10 text-sm" placeholder="G... or user@email.com" type="text" />
                         <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">alternate_email</span>
                       </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-semibold text-gray-500 ml-1">Reference (Optional)</label>
+                      <input className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-primary/20 transition-all text-sm" placeholder="Invoice #1024" type="text" />
                     </div>
                   </div>
                 </div>
@@ -174,6 +92,7 @@ export default function SendMoneyPage() {
             <div className="bg-white rounded-xl p-4 border border-gray-200 opacity-0 animate-on-scroll" style={{ animationDelay: "100ms" }}>
               <div className="flex justify-between items-center mb-3">
                 <h4 className="text-sm font-bold text-gray-800">Recent Recipients</h4>
+                <button className="text-xs text-primary font-semibold hover:underline">View All</button>
               </div>
               <div className="flex gap-3 overflow-x-auto pb-1">
                 {["Sofia M.", "Marcus L.", "Elena K."].map((name, i) => (
@@ -197,23 +116,15 @@ export default function SendMoneyPage() {
               <h3 className="text-base font-bold mb-6 relative z-10">Transaction Summary</h3>
               <div className="space-y-4 relative z-10">
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center text-sm opacity-80">
-                    <span>Exchange Rate</span>
-                    <span className="font-semibold">
-                      {rateLoading ? "Loading..." : rateError ? "Unavailable" : `1 ${fromAsset} = ${exchangeRate?.toFixed(4)} ${toAsset}`}
-                    </span>
-                  </div>
-                  {rateError && <p className="text-xs text-red-300">{rateError}</p>}
-                  <div className="flex justify-between items-center text-sm opacity-80"><span>Network Fee</span><span className="font-semibold">~0.00001 XLM</span></div>
-                  <div className="flex justify-between items-center pt-2 border-t border-white/10"><span className="text-sm">Total Cost</span><span className="font-bold">{parseFloat(amount || "0").toFixed(2)} {fromAsset}</span></div>
+                  <div className="flex justify-between items-center text-sm opacity-80"><span>Exchange Rate</span><span className="font-semibold">1 USD = {exchangeRate} EUR</span></div>
+                  <div className="flex justify-between items-center text-sm opacity-80"><span>RemitX Fee</span><span className="font-semibold">$0.50 USD</span></div>
+                  <div className="flex justify-between items-center text-sm opacity-80"><span>Anchor Fee</span><span className="font-semibold">$1.25 USD</span></div>
+                  <div className="flex justify-between items-center pt-2 border-t border-white/10"><span className="text-sm">Total Cost</span><span className="font-bold">${(parseFloat(amount || "0") + 1.75).toFixed(2)} USD</span></div>
                 </div>
                 <div className="bg-white/10 p-4 rounded-xl backdrop-blur-sm border border-white/5">
                   <div className="flex flex-col items-center py-1">
                     <span className="text-[10px] opacity-70 uppercase tracking-widest mb-1">Recipient Receives</span>
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-2xl lg:text-3xl font-bold">{rateLoading ? "..." : converted.toFixed(2)}</span>
-                      <span className="text-sm">{toAsset}</span>
-                    </div>
+                    <div className="flex items-baseline gap-1.5"><span className="text-2xl lg:text-3xl font-bold">{converted.toFixed(2)}</span><span className="text-sm">EUR</span></div>
                     <span className="text-[10px] text-emerald-300 flex items-center gap-1 mt-1.5"><span className="material-symbols-outlined text-xs">schedule</span>Instant Delivery</span>
                   </div>
                 </div>
@@ -221,13 +132,8 @@ export default function SendMoneyPage() {
                   <span className="material-symbols-outlined text-sm shrink-0">info</span>
                   <p>Verify the Stellar address carefully. Funds sent cannot be recovered.</p>
                 </div>
-                {sendError && <p className="text-xs text-red-300 bg-red-900/20 p-2 rounded-lg">{sendError}</p>}
-                <button
-                  onClick={handleContinue}
-                  disabled={sending || rateLoading || !recipientAddress || !amount}
-                  className="w-full bg-emerald-400 text-emerald-900 font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {sending ? "Building..." : "Continue to Review"} <span className="material-symbols-outlined text-lg">arrow_forward</span>
+                <button className="w-full bg-emerald-400 text-emerald-900 font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-lg">
+                  Continue to Review <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform text-lg">arrow_forward</span>
                 </button>
               </div>
             </section>

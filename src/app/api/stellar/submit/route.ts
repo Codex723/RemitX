@@ -33,16 +33,20 @@ export async function POST(request: NextRequest) {
       return errorResponse(`Transaction is already in status: ${tx.status}`, 400);
     }
 
-    // Update status to validating
+    // TODO(contributor):
+    // 1. Call submitTransaction() to submit the signed XDR to Horizon
+    // 2. Set status to "validating" while waiting
+    // 3. On success: update status to "confirmed", store stellarTxHash
+    // 4. On failure: update status to "failed"
+    // 5. If an escrow_id is set on the Transaction, also create/update
+    //    the Escrow record
     await db.transaction.update({
       where: { id: transactionId },
       data: { status: "validating" },
     });
 
-    // Submit to Stellar
     const result = await submitTransaction(signedXdr);
 
-    // Update transaction record
     const updated = await db.transaction.update({
       where: { id: transactionId },
       data: {
@@ -63,18 +67,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (err: any) {
     console.error("Submit error:", err);
-
-    // Try to update the transaction status if we have the ID
-    try {
-      const body = await request.json();
-      if (body.transactionId) {
-        await db.transaction.update({
-          where: { id: body.transactionId },
-          data: { status: "failed" },
-        });
-      }
-    } catch {}
-
     return errorResponse(err.message || "Failed to submit transaction", 500);
   }
 }

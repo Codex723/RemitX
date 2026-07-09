@@ -1,11 +1,8 @@
 import { NextRequest } from "next/server";
-import { db } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
 import { fetchRate } from "@/lib/stellar";
 import { rateQuerySchema } from "@/lib/validations";
 import { successResponse, errorResponse } from "@/lib/api-response";
-import { getCurrentUser } from "@/lib/auth";
-
-const RATE_CACHE_TTL_SECONDS = 30;
 
 export async function GET(request: NextRequest) {
   try {
@@ -25,45 +22,18 @@ export async function GET(request: NextRequest) {
     }
 
     const { from, to } = parsed.data;
-    const upperFrom = from.toUpperCase();
-    const upperTo = to.toUpperCase();
 
-    // Check cache first
-    const cached = await db.rate.findUnique({
-      where: {
-        fromAsset_toAsset: { fromAsset: upperFrom, toAsset: upperTo },
-      },
-    });
-
-    if (cached) {
-      const age = (Date.now() - cached.fetchedAt.getTime()) / 1000;
-      if (age < RATE_CACHE_TTL_SECONDS) {
-        return successResponse({
-          rate: cached.rate,
-          fromAsset: upperFrom,
-          toAsset: upperTo,
-          expiresAt: new Date(cached.fetchedAt.getTime() + RATE_CACHE_TTL_SECONDS * 1000).toISOString(),
-        });
-      }
-    }
-
-    // Fetch fresh rate
-    const rate = await fetchRate(upperFrom, upperTo);
-
-    // Upsert cache
-    await db.rate.upsert({
-      where: {
-        fromAsset_toAsset: { fromAsset: upperFrom, toAsset: upperTo },
-      },
-      update: { rate, fetchedAt: new Date() },
-      create: { fromAsset: upperFrom, toAsset: upperTo, rate },
-    });
+    // TODO(contributor): 
+    // 1. Check the Rate table for a cached rate < 30s old
+    // 2. If cached, return it
+    // 3. If not, call fetchRate() to get a live Horizon quote
+    // 4. Upsert the Rate table and return the fresh rate
+    const rate = await fetchRate(from.toUpperCase(), to.toUpperCase());
 
     return successResponse({
       rate,
-      fromAsset: upperFrom,
-      toAsset: upperTo,
-      expiresAt: new Date(Date.now() + RATE_CACHE_TTL_SECONDS * 1000).toISOString(),
+      fromAsset: from.toUpperCase(),
+      toAsset: to.toUpperCase(),
     });
   } catch (err) {
     console.error("Rate fetch error:", err);
