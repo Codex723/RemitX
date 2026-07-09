@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import { fetchRate } from "@/lib/stellar";
+import { getRate } from "@/lib/rates";
 import { rateQuerySchema } from "@/lib/validations";
 import { successResponse, errorResponse } from "@/lib/api-response";
 
@@ -23,17 +23,14 @@ export async function GET(request: NextRequest) {
 
     const { from, to } = parsed.data;
 
-    // TODO(contributor): 
-    // 1. Check the Rate table for a cached rate < 30s old
-    // 2. If cached, return it
-    // 3. If not, call fetchRate() to get a live Horizon quote
-    // 4. Upsert the Rate table and return the fresh rate
-    const rate = await fetchRate(from.toUpperCase(), to.toUpperCase());
+    const result = await getRate(from.toUpperCase(), to.toUpperCase());
 
     return successResponse({
-      rate,
-      fromAsset: from.toUpperCase(),
-      toAsset: to.toUpperCase(),
+      rate: result.rate,
+      fromAsset: result.fromAsset,
+      toAsset: result.toAsset,
+      fetchedAt: result.fetchedAt,
+      source: result.source,
     });
   } catch (err) {
     console.error("Rate fetch error:", err);

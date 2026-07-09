@@ -1,4 +1,5 @@
 import { Networks, Keypair, Horizon } from "@stellar/stellar-sdk";
+import { getRate } from "@/lib/rates";
 
 const NETWORK = process.env.STELLAR_NETWORK || "testnet";
 const HORIZON_URL = process.env.STELLAR_HORIZON_URL || "https://horizon-testnet.stellar.org";
@@ -41,11 +42,8 @@ export async function createTestnetAccount(): Promise<{
 
 /** Fetch a path-payment rate from Horizon */
 export async function fetchRate(from: string, to: string): Promise<string> {
-  // TODO(contributor): Call server.strictSendPaths() or server.strictReceivePaths()
-  // to get a live quote from Horizon. Cache the result in the Rate table
-  // for ~30 seconds. Fall back to a hardcoded rate map if Horizon is unreachable.
-  console.warn(`[STUB] fetchRate returning mock rate for ${from}->${to}`);
-  return "1.00";
+  const result = await getRate(from, to);
+  return result.rate;
 }
 
 /** Build a path_payment_strict_send transaction and return unsigned XDR */
