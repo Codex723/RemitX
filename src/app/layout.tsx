@@ -10,6 +10,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "RemitX | Send Money Smarter, Cheaper, Faster",
   description: "RemitX leverages the Stellar Network to deliver instant cross-border settlements with lower fees than traditional banking.",
+  icons: {
+    icon: "/image/Remitx.png",
+    shortcut: "/image/Remitx.png",
+    apple: "/image/Remitx.png",
+  },
 };
 
 export default function RootLayout({
