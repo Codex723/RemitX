@@ -7,7 +7,7 @@
 
 **RemitX** is a mobile-first dApp built on the **Stellar Network** that optimises cross-border payments. It intelligently routes funds through the most cost-effective payment paths and compares anchor fees to ensure users get the best exchange rates for corridors like Nigeria (NGN), Philippines (PHP), UK (GBP), and USA (USD).
 
-> **Live Demo** — [remitx.app](https://remitx.vercel.app) _(placeholder)_
+> **Live Demo** — [remitx.app](https://remitxx.vercel.app) _(placeholder)_
 
 ---
 
