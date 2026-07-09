@@ -26,3 +26,13 @@ export const TransactionStatus = {
 } as const
 
 export type TransactionStatus = (typeof TransactionStatus)[keyof typeof TransactionStatus]
+
+
+export const EscrowStatus = {
+  locked: 'locked',
+  released: 'released',
+  refunded: 'refunded',
+  expired: 'expired'
+} as const
+
+export type EscrowStatus = (typeof EscrowStatus)[keyof typeof EscrowStatus]

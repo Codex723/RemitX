@@ -33,8 +33,8 @@ export type TransactionMinAggregateOutputType = {
   toAmount: string | null
   recipientAddress: string | null
   stellarTxHash: string | null
+  escrowId: string | null
   status: $Enums.TransactionStatus | null
-  xdr: string | null
   createdAt: Date | null
   confirmedAt: Date | null
   updatedAt: Date | null
@@ -49,8 +49,8 @@ export type TransactionMaxAggregateOutputType = {
   toAmount: string | null
   recipientAddress: string | null
   stellarTxHash: string | null
+  escrowId: string | null
   status: $Enums.TransactionStatus | null
-  xdr: string | null
   createdAt: Date | null
   confirmedAt: Date | null
   updatedAt: Date | null
@@ -65,8 +65,8 @@ export type TransactionCountAggregateOutputType = {
   toAmount: number
   recipientAddress: number
   stellarTxHash: number
+  escrowId: number
   status: number
-  xdr: number
   createdAt: number
   confirmedAt: number
   updatedAt: number
@@ -83,8 +83,8 @@ export type TransactionMinAggregateInputType = {
   toAmount?: true
   recipientAddress?: true
   stellarTxHash?: true
+  escrowId?: true
   status?: true
-  xdr?: true
   createdAt?: true
   confirmedAt?: true
   updatedAt?: true
@@ -99,8 +99,8 @@ export type TransactionMaxAggregateInputType = {
   toAmount?: true
   recipientAddress?: true
   stellarTxHash?: true
+  escrowId?: true
   status?: true
-  xdr?: true
   createdAt?: true
   confirmedAt?: true
   updatedAt?: true
@@ -115,8 +115,8 @@ export type TransactionCountAggregateInputType = {
   toAmount?: true
   recipientAddress?: true
   stellarTxHash?: true
+  escrowId?: true
   status?: true
-  xdr?: true
   createdAt?: true
   confirmedAt?: true
   updatedAt?: true
@@ -204,8 +204,8 @@ export type TransactionGroupByOutputType = {
   toAmount: string | null
   recipientAddress: string
   stellarTxHash: string | null
+  escrowId: string | null
   status: $Enums.TransactionStatus
-  xdr: string | null
   createdAt: Date
   confirmedAt: Date | null
   updatedAt: Date
@@ -241,8 +241,8 @@ export type TransactionWhereInput = {
   toAmount?: Prisma.StringNullableFilter<"Transaction"> | string | null
   recipientAddress?: Prisma.StringFilter<"Transaction"> | string
   stellarTxHash?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  escrowId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   status?: Prisma.EnumTransactionStatusFilter<"Transaction"> | $Enums.TransactionStatus
-  xdr?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   confirmedAt?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
   updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
@@ -258,8 +258,8 @@ export type TransactionOrderByWithRelationInput = {
   toAmount?: Prisma.SortOrderInput | Prisma.SortOrder
   recipientAddress?: Prisma.SortOrder
   stellarTxHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  escrowId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
-  xdr?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   confirmedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -278,8 +278,8 @@ export type TransactionWhereUniqueInput = Prisma.AtLeast<{
   toAmount?: Prisma.StringNullableFilter<"Transaction"> | string | null
   recipientAddress?: Prisma.StringFilter<"Transaction"> | string
   stellarTxHash?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  escrowId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   status?: Prisma.EnumTransactionStatusFilter<"Transaction"> | $Enums.TransactionStatus
-  xdr?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   confirmedAt?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
   updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
@@ -295,8 +295,8 @@ export type TransactionOrderByWithAggregationInput = {
   toAmount?: Prisma.SortOrderInput | Prisma.SortOrder
   recipientAddress?: Prisma.SortOrder
   stellarTxHash?: Prisma.SortOrderInput | Prisma.SortOrder
+  escrowId?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
-  xdr?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   confirmedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -317,8 +317,8 @@ export type TransactionScalarWhereWithAggregatesInput = {
   toAmount?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   recipientAddress?: Prisma.StringWithAggregatesFilter<"Transaction"> | string
   stellarTxHash?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
+  escrowId?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   status?: Prisma.EnumTransactionStatusWithAggregatesFilter<"Transaction"> | $Enums.TransactionStatus
-  xdr?: Prisma.StringNullableWithAggregatesFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Transaction"> | Date | string
   confirmedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Transaction"> | Date | string | null
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Transaction"> | Date | string
@@ -332,8 +332,8 @@ export type TransactionCreateInput = {
   toAmount?: string | null
   recipientAddress: string
   stellarTxHash?: string | null
+  escrowId?: string | null
   status?: $Enums.TransactionStatus
-  xdr?: string | null
   createdAt?: Date | string
   confirmedAt?: Date | string | null
   updatedAt?: Date | string
@@ -349,8 +349,8 @@ export type TransactionUncheckedCreateInput = {
   toAmount?: string | null
   recipientAddress: string
   stellarTxHash?: string | null
+  escrowId?: string | null
   status?: $Enums.TransactionStatus
-  xdr?: string | null
   createdAt?: Date | string
   confirmedAt?: Date | string | null
   updatedAt?: Date | string
@@ -364,8 +364,8 @@ export type TransactionUpdateInput = {
   toAmount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recipientAddress?: Prisma.StringFieldUpdateOperationsInput | string
   stellarTxHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  escrowId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  xdr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -381,8 +381,8 @@ export type TransactionUncheckedUpdateInput = {
   toAmount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recipientAddress?: Prisma.StringFieldUpdateOperationsInput | string
   stellarTxHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  escrowId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  xdr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -397,8 +397,8 @@ export type TransactionCreateManyInput = {
   toAmount?: string | null
   recipientAddress: string
   stellarTxHash?: string | null
+  escrowId?: string | null
   status?: $Enums.TransactionStatus
-  xdr?: string | null
   createdAt?: Date | string
   confirmedAt?: Date | string | null
   updatedAt?: Date | string
@@ -412,8 +412,8 @@ export type TransactionUpdateManyMutationInput = {
   toAmount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recipientAddress?: Prisma.StringFieldUpdateOperationsInput | string
   stellarTxHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  escrowId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  xdr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -428,8 +428,8 @@ export type TransactionUncheckedUpdateManyInput = {
   toAmount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recipientAddress?: Prisma.StringFieldUpdateOperationsInput | string
   stellarTxHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  escrowId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  xdr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -454,8 +454,8 @@ export type TransactionCountOrderByAggregateInput = {
   toAmount?: Prisma.SortOrder
   recipientAddress?: Prisma.SortOrder
   stellarTxHash?: Prisma.SortOrder
+  escrowId?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  xdr?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   confirmedAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -470,8 +470,8 @@ export type TransactionMaxOrderByAggregateInput = {
   toAmount?: Prisma.SortOrder
   recipientAddress?: Prisma.SortOrder
   stellarTxHash?: Prisma.SortOrder
+  escrowId?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  xdr?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   confirmedAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -486,8 +486,8 @@ export type TransactionMinOrderByAggregateInput = {
   toAmount?: Prisma.SortOrder
   recipientAddress?: Prisma.SortOrder
   stellarTxHash?: Prisma.SortOrder
+  escrowId?: Prisma.SortOrder
   status?: Prisma.SortOrder
-  xdr?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   confirmedAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -551,8 +551,8 @@ export type TransactionCreateWithoutUserInput = {
   toAmount?: string | null
   recipientAddress: string
   stellarTxHash?: string | null
+  escrowId?: string | null
   status?: $Enums.TransactionStatus
-  xdr?: string | null
   createdAt?: Date | string
   confirmedAt?: Date | string | null
   updatedAt?: Date | string
@@ -566,8 +566,8 @@ export type TransactionUncheckedCreateWithoutUserInput = {
   toAmount?: string | null
   recipientAddress: string
   stellarTxHash?: string | null
+  escrowId?: string | null
   status?: $Enums.TransactionStatus
-  xdr?: string | null
   createdAt?: Date | string
   confirmedAt?: Date | string | null
   updatedAt?: Date | string
@@ -611,8 +611,8 @@ export type TransactionScalarWhereInput = {
   toAmount?: Prisma.StringNullableFilter<"Transaction"> | string | null
   recipientAddress?: Prisma.StringFilter<"Transaction"> | string
   stellarTxHash?: Prisma.StringNullableFilter<"Transaction"> | string | null
+  escrowId?: Prisma.StringNullableFilter<"Transaction"> | string | null
   status?: Prisma.EnumTransactionStatusFilter<"Transaction"> | $Enums.TransactionStatus
-  xdr?: Prisma.StringNullableFilter<"Transaction"> | string | null
   createdAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
   confirmedAt?: Prisma.DateTimeNullableFilter<"Transaction"> | Date | string | null
   updatedAt?: Prisma.DateTimeFilter<"Transaction"> | Date | string
@@ -626,8 +626,8 @@ export type TransactionCreateManyUserInput = {
   toAmount?: string | null
   recipientAddress: string
   stellarTxHash?: string | null
+  escrowId?: string | null
   status?: $Enums.TransactionStatus
-  xdr?: string | null
   createdAt?: Date | string
   confirmedAt?: Date | string | null
   updatedAt?: Date | string
@@ -641,8 +641,8 @@ export type TransactionUpdateWithoutUserInput = {
   toAmount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recipientAddress?: Prisma.StringFieldUpdateOperationsInput | string
   stellarTxHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  escrowId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  xdr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -656,8 +656,8 @@ export type TransactionUncheckedUpdateWithoutUserInput = {
   toAmount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recipientAddress?: Prisma.StringFieldUpdateOperationsInput | string
   stellarTxHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  escrowId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  xdr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -671,8 +671,8 @@ export type TransactionUncheckedUpdateManyWithoutUserInput = {
   toAmount?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recipientAddress?: Prisma.StringFieldUpdateOperationsInput | string
   stellarTxHash?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  escrowId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   status?: Prisma.EnumTransactionStatusFieldUpdateOperationsInput | $Enums.TransactionStatus
-  xdr?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   confirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -689,8 +689,8 @@ export type TransactionSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   toAmount?: boolean
   recipientAddress?: boolean
   stellarTxHash?: boolean
+  escrowId?: boolean
   status?: boolean
-  xdr?: boolean
   createdAt?: boolean
   confirmedAt?: boolean
   updatedAt?: boolean
@@ -706,8 +706,8 @@ export type TransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   toAmount?: boolean
   recipientAddress?: boolean
   stellarTxHash?: boolean
+  escrowId?: boolean
   status?: boolean
-  xdr?: boolean
   createdAt?: boolean
   confirmedAt?: boolean
   updatedAt?: boolean
@@ -723,8 +723,8 @@ export type TransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   toAmount?: boolean
   recipientAddress?: boolean
   stellarTxHash?: boolean
+  escrowId?: boolean
   status?: boolean
-  xdr?: boolean
   createdAt?: boolean
   confirmedAt?: boolean
   updatedAt?: boolean
@@ -740,14 +740,14 @@ export type TransactionSelectScalar = {
   toAmount?: boolean
   recipientAddress?: boolean
   stellarTxHash?: boolean
+  escrowId?: boolean
   status?: boolean
-  xdr?: boolean
   createdAt?: boolean
   confirmedAt?: boolean
   updatedAt?: boolean
 }
 
-export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "fromAsset" | "toAsset" | "fromAmount" | "toAmount" | "recipientAddress" | "stellarTxHash" | "status" | "xdr" | "createdAt" | "confirmedAt" | "updatedAt", ExtArgs["result"]["transaction"]>
+export type TransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "fromAsset" | "toAsset" | "fromAmount" | "toAmount" | "recipientAddress" | "stellarTxHash" | "escrowId" | "status" | "createdAt" | "confirmedAt" | "updatedAt", ExtArgs["result"]["transaction"]>
 export type TransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -772,8 +772,8 @@ export type $TransactionPayload<ExtArgs extends runtime.Types.Extensions.Interna
     toAmount: string | null
     recipientAddress: string
     stellarTxHash: string | null
+    escrowId: string | null
     status: $Enums.TransactionStatus
-    xdr: string | null
     createdAt: Date
     confirmedAt: Date | null
     updatedAt: Date
@@ -1209,8 +1209,8 @@ export interface TransactionFieldRefs {
   readonly toAmount: Prisma.FieldRef<"Transaction", 'String'>
   readonly recipientAddress: Prisma.FieldRef<"Transaction", 'String'>
   readonly stellarTxHash: Prisma.FieldRef<"Transaction", 'String'>
+  readonly escrowId: Prisma.FieldRef<"Transaction", 'String'>
   readonly status: Prisma.FieldRef<"Transaction", 'TransactionStatus'>
-  readonly xdr: Prisma.FieldRef<"Transaction", 'String'>
   readonly createdAt: Prisma.FieldRef<"Transaction", 'DateTime'>
   readonly confirmedAt: Prisma.FieldRef<"Transaction", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Transaction", 'DateTime'>

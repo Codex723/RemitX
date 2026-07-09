@@ -1,12 +1,10 @@
 // Prisma schema for RemitX
-// Database: CockroachDB (Postgres-compatible)
+// Database: Supabase (Postgres)
 //
-// NOTE: CockroachDB is Postgres-compatible but has some differences:
-// - No `@default(autoincrement())` — use cuid() or uuid() instead
-// - No `@updatedAt` on enum-adjacent fields — handled manually
-// - CockroachDB 23.1+ supports most Prisma features natively
-// - If you hit "relation requires a foreign key constraint" errors,
-//   ensure CockroachDB is running with `--enable-foreign-key-constraints`
+// NOTE: This schema targets Supabase's Postgres-compatible backend.
+// - Uses cuid() for IDs (not autoincrement)
+// - All monetary amounts stored as strings to avoid precision loss
+// - Foreign keys are enforced by Postgres (enable them in Supabase project settings)
 
 generator client {
   provider = "prisma-client"
@@ -67,8 +65,7 @@ model Transaction {
   confirmedAt      DateTime?
   updatedAt        DateTime          @updatedAt
 
-  user             User              @relation(fields: [userId], references: [id])
-  escrow           Escrow?           @relation(fields: [escrowId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([status])
@@ -88,6 +85,7 @@ model Rate {
 
 model Escrow {
   id               String       @id @default(cuid())
+  userId           String
   transactionId    String       @unique // one-to-one with Transaction
   contractAddress  String       // Soroban contract address on Stellar
   senderAddress    String       // Stellar public key of the sender
@@ -101,8 +99,9 @@ model Escrow {
   expiresAt        DateTime     // when the escrow expires and can be refunded
   updatedAt        DateTime     @updatedAt
 
-  transaction      Transaction  @relation(fields: [transactionId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
+  @@index([userId])
   @@index([senderAddress])
   @@index([recipientAddress])
   @@index([status])

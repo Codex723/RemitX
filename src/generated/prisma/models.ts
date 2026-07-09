@@ -11,4 +11,5 @@
 export type * from './models/User'
 export type * from './models/Transaction'
 export type * from './models/Rate'
+export type * from './models/Escrow'
 export type * from './commonInputTypes'

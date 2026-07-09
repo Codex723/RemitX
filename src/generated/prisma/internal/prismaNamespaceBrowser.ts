@@ -53,7 +53,8 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Transaction: 'Transaction',
-  Rate: 'Rate'
+  Rate: 'Rate',
+  Escrow: 'Escrow'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -94,8 +95,8 @@ export const TransactionScalarFieldEnum = {
   toAmount: 'toAmount',
   recipientAddress: 'recipientAddress',
   stellarTxHash: 'stellarTxHash',
+  escrowId: 'escrowId',
   status: 'status',
-  xdr: 'xdr',
   createdAt: 'createdAt',
   confirmedAt: 'confirmedAt',
   updatedAt: 'updatedAt'
@@ -113,6 +114,26 @@ export const RateScalarFieldEnum = {
 } as const
 
 export type RateScalarFieldEnum = (typeof RateScalarFieldEnum)[keyof typeof RateScalarFieldEnum]
+
+
+export const EscrowScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  transactionId: 'transactionId',
+  contractAddress: 'contractAddress',
+  senderAddress: 'senderAddress',
+  recipientAddress: 'recipientAddress',
+  amount: 'amount',
+  asset: 'asset',
+  status: 'status',
+  depositTxHash: 'depositTxHash',
+  releaseTxHash: 'releaseTxHash',
+  createdAt: 'createdAt',
+  expiresAt: 'expiresAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EscrowScalarFieldEnum = (typeof EscrowScalarFieldEnum)[keyof typeof EscrowScalarFieldEnum]
 
 
 export const SortOrder = {

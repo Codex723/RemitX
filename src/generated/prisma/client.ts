@@ -56,3 +56,8 @@ export type Transaction = Prisma.TransactionModel
  * 
  */
 export type Rate = Prisma.RateModel
+/**
+ * Model Escrow
+ * 
+ */
+export type Escrow = Prisma.EscrowModel

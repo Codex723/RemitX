@@ -169,6 +169,23 @@ export type DateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
   _max?: Prisma.NestedDateTimeNullableFilter<$PrismaModel>
 }
 
+export type EnumEscrowStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.EscrowStatus | Prisma.EnumEscrowStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.EscrowStatus[] | Prisma.ListEnumEscrowStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.EscrowStatus[] | Prisma.ListEnumEscrowStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumEscrowStatusFilter<$PrismaModel> | $Enums.EscrowStatus
+}
+
+export type EnumEscrowStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.EscrowStatus | Prisma.EnumEscrowStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.EscrowStatus[] | Prisma.ListEnumEscrowStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.EscrowStatus[] | Prisma.ListEnumEscrowStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumEscrowStatusWithAggregatesFilter<$PrismaModel> | $Enums.EscrowStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumEscrowStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumEscrowStatusFilter<$PrismaModel>
+}
+
 export type NestedStringFilter<$PrismaModel = never> = {
   equals?: string | Prisma.StringFieldRefInput<$PrismaModel>
   in?: string[] | Prisma.ListStringFieldRefInput<$PrismaModel>
@@ -335,6 +352,23 @@ export type NestedDateTimeNullableWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntNullableFilter<$PrismaModel>
   _min?: Prisma.NestedDateTimeNullableFilter<$PrismaModel>
   _max?: Prisma.NestedDateTimeNullableFilter<$PrismaModel>
+}
+
+export type NestedEnumEscrowStatusFilter<$PrismaModel = never> = {
+  equals?: $Enums.EscrowStatus | Prisma.EnumEscrowStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.EscrowStatus[] | Prisma.ListEnumEscrowStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.EscrowStatus[] | Prisma.ListEnumEscrowStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumEscrowStatusFilter<$PrismaModel> | $Enums.EscrowStatus
+}
+
+export type NestedEnumEscrowStatusWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.EscrowStatus | Prisma.EnumEscrowStatusFieldRefInput<$PrismaModel>
+  in?: $Enums.EscrowStatus[] | Prisma.ListEnumEscrowStatusFieldRefInput<$PrismaModel>
+  notIn?: $Enums.EscrowStatus[] | Prisma.ListEnumEscrowStatusFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumEscrowStatusWithAggregatesFilter<$PrismaModel> | $Enums.EscrowStatus
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumEscrowStatusFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumEscrowStatusFilter<$PrismaModel>
 }
 
 

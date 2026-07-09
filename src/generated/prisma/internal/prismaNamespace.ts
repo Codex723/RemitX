@@ -386,7 +386,8 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   Transaction: 'Transaction',
-  Rate: 'Rate'
+  Rate: 'Rate',
+  Escrow: 'Escrow'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -402,7 +403,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "transaction" | "rate"
+    modelProps: "user" | "transaction" | "rate" | "escrow"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -628,6 +629,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    Escrow: {
+      payload: Prisma.$EscrowPayload<ExtArgs>
+      fields: Prisma.EscrowFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.EscrowFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscrowPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.EscrowFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscrowPayload>
+        }
+        findFirst: {
+          args: Prisma.EscrowFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscrowPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.EscrowFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscrowPayload>
+        }
+        findMany: {
+          args: Prisma.EscrowFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscrowPayload>[]
+        }
+        create: {
+          args: Prisma.EscrowCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscrowPayload>
+        }
+        createMany: {
+          args: Prisma.EscrowCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.EscrowCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscrowPayload>[]
+        }
+        delete: {
+          args: Prisma.EscrowDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscrowPayload>
+        }
+        update: {
+          args: Prisma.EscrowUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscrowPayload>
+        }
+        deleteMany: {
+          args: Prisma.EscrowDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.EscrowUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.EscrowUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscrowPayload>[]
+        }
+        upsert: {
+          args: Prisma.EscrowUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$EscrowPayload>
+        }
+        aggregate: {
+          args: Prisma.EscrowAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateEscrow>
+        }
+        groupBy: {
+          args: Prisma.EscrowGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EscrowGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.EscrowCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.EscrowCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -689,8 +764,8 @@ export const TransactionScalarFieldEnum = {
   toAmount: 'toAmount',
   recipientAddress: 'recipientAddress',
   stellarTxHash: 'stellarTxHash',
+  escrowId: 'escrowId',
   status: 'status',
-  xdr: 'xdr',
   createdAt: 'createdAt',
   confirmedAt: 'confirmedAt',
   updatedAt: 'updatedAt'
@@ -708,6 +783,26 @@ export const RateScalarFieldEnum = {
 } as const
 
 export type RateScalarFieldEnum = (typeof RateScalarFieldEnum)[keyof typeof RateScalarFieldEnum]
+
+
+export const EscrowScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  transactionId: 'transactionId',
+  contractAddress: 'contractAddress',
+  senderAddress: 'senderAddress',
+  recipientAddress: 'recipientAddress',
+  amount: 'amount',
+  asset: 'asset',
+  status: 'status',
+  depositTxHash: 'depositTxHash',
+  releaseTxHash: 'releaseTxHash',
+  createdAt: 'createdAt',
+  expiresAt: 'expiresAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EscrowScalarFieldEnum = (typeof EscrowScalarFieldEnum)[keyof typeof EscrowScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -793,6 +888,20 @@ export type EnumTransactionStatusFieldRefInput<$PrismaModel> = FieldRefInputType
  * Reference to a field of type 'TransactionStatus[]'
  */
 export type ListEnumTransactionStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'TransactionStatus[]'>
+    
+
+
+/**
+ * Reference to a field of type 'EscrowStatus'
+ */
+export type EnumEscrowStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EscrowStatus'>
+    
+
+
+/**
+ * Reference to a field of type 'EscrowStatus[]'
+ */
+export type ListEnumEscrowStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'EscrowStatus[]'>
     
 
 
@@ -922,6 +1031,7 @@ export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   transaction?: Prisma.TransactionOmit
   rate?: Prisma.RateOmit
+  escrow?: Prisma.EscrowOmit
 }
 
 /* Types for Logging */
