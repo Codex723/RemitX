@@ -1,20 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { LoginSkeleton } from "@/components/Skeleton";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) return <LoginSkeleton />;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    setSubmitting(true);
 
     try {
       const endpoint = isRegister ? "/api/auth/register" : "/api/auth/login";
@@ -35,7 +44,7 @@ export default function LoginPage() {
     } catch (err) {
       setError("Network error. Please try again.");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   }
 
@@ -96,10 +105,10 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={submitting}
             className="w-full py-2.5 bg-primary text-white rounded-lg font-semibold text-sm hover:shadow-md transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading
+            {submitting
               ? "Loading..."
               : isRegister
               ? "Create Account"

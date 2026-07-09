@@ -1,18 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { SendSkeleton } from "@/components/Skeleton";
 
 // NOTE: This page is static/mocked for the foundation build.
 // TODO(contributor): Replace the hardcoded exchangeRate with a real call to
-// GET /api/stellar/rate. Call POST /api/stellar/send on "Continue to Review",
-// pass the returned transaction data to the Review page.
+// GET /api/stellar/rate.
 
 export default function SendMoneyPage() {
+  const [loading, setLoading] = useState(true);
   const [amount, setAmount] = useState("1000.00");
   const exchangeRate = 0.8425;
   const converted = (parseFloat(amount) || 0) * exchangeRate;
 
   useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 600);
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -26,8 +28,13 @@ export default function SendMoneyPage() {
       { threshold: 0.1 }
     );
     document.querySelectorAll(".animate-on-scroll").forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
   }, []);
+
+  if (loading) return <SendSkeleton />;
 
   return (
     <main className="min-h-screen bg-gray-50/50">

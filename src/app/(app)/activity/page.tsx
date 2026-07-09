@@ -1,13 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { ActivitySkeleton } from "@/components/Skeleton";
 
 // NOTE: This page is static/mocked for the foundation build.
 // TODO(contributor): Replace the hardcoded rows with a real call to
-// GET /api/transactions. Render real Transaction records from the DB.
+// GET /api/transactions.
 
 export default function ActivityPage() {
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 700);
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -21,8 +25,13 @@ export default function ActivityPage() {
       { threshold: 0.1 }
     );
     document.querySelectorAll(".animate-on-scroll").forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+    return () => {
+      clearTimeout(timer);
+      observer.disconnect();
+    };
   }, []);
+
+  if (loading) return <ActivitySkeleton />;
 
   return (
     <main className="min-h-screen bg-gray-50/50">
