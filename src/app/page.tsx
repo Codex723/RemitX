@@ -2,25 +2,16 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { LandingSkeleton } from "@/components/Skeleton";
 
 export default function LandingPage() {
-  const [loading, setLoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    // Simulate brief loading for skeleton display
-    const timer = setTimeout(() => setLoading(false), 600);
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener("scroll", handleScroll);
-    };
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  if (loading) return <LandingSkeleton />;
 
   return (
     <>

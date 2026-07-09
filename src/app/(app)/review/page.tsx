@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { ReviewSkeleton } from "@/components/Skeleton";
+import { useEffect } from "react";
 
 // NOTE: This page is static/mocked for the foundation build.
-// TODO(contributor): Replace handleConfirm with a real flow.
+// TODO(contributor): Replace handleConfirm with a real flow:
+// 1. Receive transaction data (XDR + transactionId) via route state or short-lived session
+// 2. Sign the XDR client-side (via Freighter or testnet-localStorage shortcut)
+// 3. Call POST /api/stellar/submit with { signedXdr, transactionId }
+// 4. Display the real stellarTxHash and status from the response
 
 export default function ReviewPage() {
-  const [loading, setLoading] = useState(true);
-
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 600);
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -24,13 +24,8 @@ export default function ReviewPage() {
       { threshold: 0.1 }
     );
     document.querySelectorAll(".animate-on-scroll").forEach((el) => observer.observe(el));
-    return () => {
-      clearTimeout(timer);
-      observer.disconnect();
-    };
+    return () => observer.disconnect();
   }, []);
-
-  if (loading) return <ReviewSkeleton />;
 
   const handleConfirm = () => {
     const btn = document.getElementById("confirmBtn") as HTMLButtonElement;
@@ -67,8 +62,9 @@ export default function ReviewPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
           {/* Left */}
           <div className="lg:col-span-7 space-y-4">
+            {/* Transaction Summary */}
             <div className="bg-white rounded-xl shadow-sm p-5 lg:p-6 overflow-hidden border border-gray-200 opacity-0 animate-on-scroll">
-              <div className="flex justify-between items-start mb-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
                 <h2 className="text-base font-bold text-primary">Transaction Summary</h2>
                 <div className="bg-emerald-50 text-emerald-700 px-2.5 py-0.5 rounded-full flex items-center gap-1">
                   <span className="material-symbols-outlined text-sm">verified</span>
@@ -86,6 +82,10 @@ export default function ReviewPage() {
                   <div className="flex items-center gap-1"><span className="text-gray-500">Network Fee</span><span className="material-symbols-outlined text-sm text-gray-300 cursor-help">info</span></div>
                   <span className="font-semibold text-gray-800">0.00001 XLM</span>
                 </div>
+                <div className="flex justify-between items-center text-sm">
+                  <div className="flex items-center gap-1"><span className="text-gray-500">Anchor Fee</span><span className="material-symbols-outlined text-sm text-gray-300">info</span></div>
+                  <span className="font-semibold text-gray-800">12.55 USD</span>
+                </div>
                 <div className="flex justify-between items-center text-sm text-secondary font-bold">
                   <span className="flex items-center gap-1"><span className="material-symbols-outlined text-sm">trending_up</span>Exchange Rate</span>
                   <span>1 USD = 0.9221 EUR</span>
@@ -97,6 +97,7 @@ export default function ReviewPage() {
               </div>
             </div>
 
+            {/* Safety Warning */}
             <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex gap-3 items-start opacity-0 animate-on-scroll" style={{ animationDelay: "100ms" }}>
               <span className="material-symbols-outlined text-red-500 mt-0.5 shrink-0 text-sm">warning</span>
               <div>
@@ -108,6 +109,7 @@ export default function ReviewPage() {
 
           {/* Right */}
           <div className="lg:col-span-5 space-y-4">
+            {/* Recipient Card */}
             <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-200 opacity-0 animate-on-scroll" style={{ animationDelay: "100ms" }}>
               <h4 className="text-[10px] text-gray-400 font-bold uppercase mb-3">Recipient Details</h4>
               <div className="flex items-center gap-3 mb-4">
@@ -129,6 +131,7 @@ export default function ReviewPage() {
               </div>
             </div>
 
+            {/* Action Buttons */}
             <div className="bg-white rounded-xl shadow-sm p-5 border border-gray-200 space-y-3 opacity-0 animate-on-scroll" style={{ animationDelay: "200ms" }}>
               <button id="confirmBtn" className="w-full bg-secondary text-white text-sm font-bold py-3.5 rounded-xl flex items-center justify-center gap-2 hover:bg-emerald-800 transition-all shadow-md active:shadow-inner" onClick={handleConfirm}>
                 <span className="material-symbols-outlined text-sm">send</span> Confirm & Send
@@ -148,6 +151,7 @@ export default function ReviewPage() {
               </div>
             </div>
 
+            {/* Map Widget */}
             <div className="rounded-xl overflow-hidden border border-gray-200 h-32 lg:h-36 relative group opacity-0 animate-on-scroll" style={{ animationDelay: "300ms", background: "linear-gradient(135deg, #000666 20%, #1a237e 60%)" }}>
               <div className="absolute inset-0 bg-primary/10 pointer-events-none"></div>
               <div className="absolute bottom-2.5 left-2.5 bg-white/90 px-2.5 py-1 rounded-full flex items-center gap-1.5">

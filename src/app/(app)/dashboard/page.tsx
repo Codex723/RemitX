@@ -1,17 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { DashboardSkeleton } from "@/components/Skeleton";
+import { useEffect, useRef } from "react";
 
 // NOTE: This page is static/mocked for the foundation build.
-// TODO(contributor): Replace hardcoded numbers with real data
+// TODO(contributor): Replace hardcoded numbers with real data:
+// - Fetch account balance from Horizon for the user's Stellar public key
+// - Fetch recent transaction count from GET /api/transactions
+// - Display real stats instead of mock data
 
 export default function DashboardPage() {
-  const [loading, setLoading] = useState(true);
   const mainRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 700);
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -25,13 +25,8 @@ export default function DashboardPage() {
       { threshold: 0.1 }
     );
     document.querySelectorAll(".animate-on-scroll").forEach((el) => observer.observe(el));
-    return () => {
-      clearTimeout(timer);
-      observer.disconnect();
-    };
+    return () => observer.disconnect();
   }, []);
-
-  if (loading) return <DashboardSkeleton />;
 
   return (
     <main ref={mainRef} className="p-4 lg:p-6 bg-background min-h-screen">
