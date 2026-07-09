@@ -2,18 +2,16 @@
  * Real-World Price Engine for RemitX
  * =====================================
  * Fetches live rates from free public APIs (no API key required),
- * caches them in the database for consistency, and provides a
- * unified getRate() function used throughout the app.
+ * caches them IN MEMORY for consistency across requests, and provides
+ * a unified getRate() function used throughout the app.
  *
  * Data sources (free, no key):
  *   - CoinGecko API     → crypto asset prices (XLM, USDC, EURC in USD)
  *   - Frankfurter API   → forex fiat rates (NGN, EUR, GBP etc. against USD)
  *
- * Fallback chain: DB cache (if fresh) → API fetch → DB cache (if stale)
- * Cache TTL: 300 seconds (5 minutes)
+ * Cache: In-memory Map with 5-minute TTL — NO DATABASE NEEDED.
+ * Fallback chain: Memory cache → API fetch → "1.00"
  */
-
-import { db } from "@/lib/db";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -28,10 +26,39 @@ export interface RateResult {
 }
 
 // ---------------------------------------------------------------------------
-// Cache configuration
+// In-memory cache (no database dependency!)
 // ---------------------------------------------------------------------------
 
 const CACHE_TTL_MS = 300_000; // 5 minutes
+
+interface CacheEntry {
+  rate: string;
+  fetchedAt: number; // Date.now() milliseconds
+}
+
+/** In-memory rate cache: key = "FROM:TO" */
+const rateCache = new Map<string, CacheEntry>();
+
+function cacheKey(from: string, to: string): string {
+  return `${from.toUpperCase()}:${to.toUpperCase()}`;
+}
+
+function getCachedRate(from: string, to: string): CacheEntry | null {
+  const entry = rateCache.get(cacheKey(from, to));
+  if (!entry) return null;
+  const age = Date.now() - entry.fetchedAt;
+  if (age < CACHE_TTL_MS) return entry;
+  // Expired — remove it
+  rateCache.delete(cacheKey(from, to));
+  return null;
+}
+
+function setCachedRate(from: string, to: string, rate: string): void {
+  rateCache.set(cacheKey(from, to), {
+    rate,
+    fetchedAt: Date.now(),
+  });
+}
 
 // ---------------------------------------------------------------------------
 // Free API helpers (no key required)
@@ -79,12 +106,10 @@ async function fetchCryptoUsdRate(assetCode: string): Promise<number | null> {
 const FRANKFURTER_BASE = "https://api.frankfurter.dev";
 
 async function fetchFiatUsdRate(currencyCode: string): Promise<number | null> {
-  // Normalise to uppercase 3-letter codes
   const cur = currencyCode.toUpperCase();
   if (cur === "USD") return 1;
 
   try {
-    // Get latest USD → target rate
     const url = `${FRANKFURTER_BASE}/latest?from=USD&to=${cur}`;
     const res = await fetch(url, {
       signal: AbortSignal.timeout(8_000),
@@ -103,7 +128,6 @@ async function fetchFiatUsdRate(currencyCode: string): Promise<number | null> {
 // Known asset classification
 // ---------------------------------------------------------------------------
 
-/** Crypto assets that CoinGecko tracks */
 const CRYPTO_ASSETS = new Set(["XLM", "USDC", "EURC", "BTC", "ETH"]);
 
 function isCrypto(code: string): boolean {
@@ -117,10 +141,7 @@ function isCrypto(code: string): boolean {
 /**
  * Resolve rate for `fromAsset → toAsset` by routing through USD.
  *
- * Strategy:
  *   rate(from → to) = rate(from → USD) / rate(to → USD)
- *
- * If either leg fails, returns null.
  */
 async function resolveRateThroughUsd(
   fromAsset: string,
@@ -131,7 +152,7 @@ async function resolveRateThroughUsd(
 
   if (fromUpper === toUpper) return 1;
 
-  // Get fromAsset → USD
+  // fromAsset → USD
   let fromToUsd: number | null = null;
   if (fromUpper === "USD") {
     fromToUsd = 1;
@@ -140,10 +161,9 @@ async function resolveRateThroughUsd(
   } else {
     fromToUsd = await fetchFiatUsdRate(fromUpper);
   }
-
   if (fromToUsd === null) return null;
 
-  // Get toAsset → USD
+  // toAsset → USD
   let toToUsd: number | null = null;
   if (toUpper === "USD") {
     toToUsd = 1;
@@ -152,65 +172,9 @@ async function resolveRateThroughUsd(
   } else {
     toToUsd = await fetchFiatUsdRate(toUpper);
   }
-
-  if (toToUsd === null) return null;
-  if (toToUsd === 0) return null;
+  if (toToUsd === null || toToUsd === 0) return null;
 
   return fromToUsd / toToUsd;
-}
-
-// ---------------------------------------------------------------------------
-// DB cache helpers
-// ---------------------------------------------------------------------------
-
-async function getCachedRate(
-  fromAsset: string,
-  toAsset: string
-): Promise<{ rate: string; fetchedAt: Date } | null> {
-  try {
-    const row = await db.rate.findUnique({
-      where: {
-        fromAsset_toAsset: {
-          fromAsset: fromAsset.toUpperCase(),
-          toAsset: toAsset.toUpperCase(),
-        },
-      },
-    });
-    if (!row) return null;
-
-    const age = Date.now() - row.fetchedAt.getTime();
-    return { rate: row.rate, fetchedAt: row.fetchedAt };
-  } catch {
-    return null;
-  }
-}
-
-async function upsertCachedRate(
-  fromAsset: string,
-  toAsset: string,
-  rate: string
-): Promise<void> {
-  try {
-    await db.rate.upsert({
-      where: {
-        fromAsset_toAsset: {
-          fromAsset: fromAsset.toUpperCase(),
-          toAsset: toAsset.toUpperCase(),
-        },
-      },
-      create: {
-        fromAsset: fromAsset.toUpperCase(),
-        toAsset: toAsset.toUpperCase(),
-        rate,
-      },
-      update: {
-        rate,
-        fetchedAt: new Date(),
-      },
-    });
-  } catch (err) {
-    console.error("[rates] Failed to upsert cache:", err);
-  }
 }
 
 // ---------------------------------------------------------------------------
@@ -221,10 +185,9 @@ async function upsertCachedRate(
  * Get the exchange rate for `fromAsset → toAsset`.
  *
  * Resolution order:
- *   1. Return fresh DB cache (< CACHE_TTL) immediately
+ *   1. Return fresh in-memory cache (< 5 min) immediately
  *   2. Fetch from live APIs, cache the result, return it
- *   3. Return stale DB cache as fallback
- *   4. Return "1.00" as last resort (graceful degradation)
+ *   3. Return "1.00" as last resort (graceful degradation)
  */
 export async function getRate(
   fromAsset: string,
@@ -233,26 +196,23 @@ export async function getRate(
   const from = fromAsset.toUpperCase();
   const to = toAsset.toUpperCase();
 
-  // ---- Step 1: Check fresh cache ----
-  const cached = await getCachedRate(from, to);
+  // ---- Step 1: Check in-memory cache ----
+  const cached = getCachedRate(from, to);
   if (cached) {
-    const age = Date.now() - cached.fetchedAt.getTime();
-    if (age < CACHE_TTL_MS) {
-      return {
-        rate: cached.rate,
-        fromAsset: from,
-        toAsset: to,
-        fetchedAt: cached.fetchedAt.toISOString(),
-        source: "cache",
-      };
-    }
+    return {
+      rate: cached.rate,
+      fromAsset: from,
+      toAsset: to,
+      fetchedAt: new Date(cached.fetchedAt).toISOString(),
+      source: "cache",
+    };
   }
 
   // ---- Step 2: Fetch live from APIs ----
   const liveRate = await resolveRateThroughUsd(from, to);
   if (liveRate !== null) {
     const rateStr = liveRate.toFixed(6);
-    await upsertCachedRate(from, to, rateStr);
+    setCachedRate(from, to, rateStr);
     return {
       rate: rateStr,
       fromAsset: from,
@@ -262,21 +222,7 @@ export async function getRate(
     };
   }
 
-  // ---- Step 3: Return stale cache as fallback ----
-  if (cached) {
-    console.warn(
-      `[rates] Live fetch failed for ${from}→${to}, using stale cache`
-    );
-    return {
-      rate: cached.rate,
-      fromAsset: from,
-      toAsset: to,
-      fetchedAt: cached.fetchedAt.toISOString(),
-      source: "fallback",
-    };
-  }
-
-  // ---- Step 4: Absolute last resort ----
+  // ---- Step 3: Absolute last resort ----
   console.warn(
     `[rates] No rate available for ${from}→${to}, returning 1.00`
   );
@@ -291,7 +237,7 @@ export async function getRate(
 
 /**
  * Refresh all known rate pairs in the cache.
- * Called by Vercel Cron Jobs every 5 minutes to keep rates warm.
+ * Warm in-memory cache so first user request hits cache.
  */
 export async function refreshAllRates(): Promise<void> {
   const pairs: [string, string][] = [
@@ -324,7 +270,7 @@ export async function refreshAllRates(): Promise<void> {
   for (const [from, to] of pairs) {
     const rate = await resolveRateThroughUsd(from, to);
     if (rate !== null) {
-      await upsertCachedRate(from, to, rate.toFixed(6));
+      setCachedRate(from, to, rate.toFixed(6));
       successCount++;
     } else {
       failCount++;
