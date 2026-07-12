@@ -483,7 +483,7 @@ export default function RatesPage() {
           <div>
             <p className="text-xs font-bold">Alert Created</p>
             <p className="text-[10px] opacity-80">
-              We'll notify you at the threshold
+              We will notify you at the threshold
             </p>
           </div>
           <button
