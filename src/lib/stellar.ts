@@ -24,16 +24,41 @@ export async function createTestnetAccount(): Promise<{
   publicKey: string;
   secretKey: string;
 }> {
-  // TODO(contributor): Generate a Keypair.random(), fund via Friendbot
-  // (https://friendbot.stellar.org?addr=<publicKey> for testnet),
-  // return the publicKey and secretKey. Do NOT store the secretKey server-side
-  // in production — return it to the client once so the user can save it.
-  console.warn("[STUB] createTestnetAccount returning mock keypair");
   const keypair = Keypair.random();
-  return {
-    publicKey: keypair.publicKey(),
-    secretKey: keypair.secret(),
-  };
+  const publicKey = keypair.publicKey();
+  const secretKey = keypair.secret();
+
+  // Only attempt Friendbot funding on testnet
+  if (NETWORK === "testnet") {
+    const friendbotUrl = `https://friendbot.stellar.org?addr=${publicKey}`;
+    console.log(`[createTestnetAccount] Funding ${publicKey} via Friendbot...`);
+
+    try {
+      const response = await fetch(friendbotUrl, { method: "GET" });
+
+      if (!response.ok) {
+        // Friendbot returns 400+ when the account is already funded or on error.
+        // We treat this as non-fatal — the keypair is still valid.
+        const body = await response.text();
+        console.warn(
+          `[createTestnetAccount] Friendbot responded with ${response.status}: ${body}`
+        );
+      } else {
+        const result = await response.json();
+        console.log(
+          `[createTestnetAccount] Friendbot success: hash=${result.hash}`
+        );
+      }
+    } catch (err) {
+      // Network errors, timeouts, etc. — log and continue.
+      console.warn(
+        `[createTestnetAccount] Friendbot request failed:`,
+        err
+      );
+    }
+  }
+
+  return { publicKey, secretKey };
 }
 
 // TODO(contributor): implement Horizon polling or streaming to resolve

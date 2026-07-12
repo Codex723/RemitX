@@ -102,7 +102,7 @@ export default function ReviewPage() {
               <span className="material-symbols-outlined text-red-500 mt-0.5 shrink-0 text-sm">warning</span>
               <div>
                 <p className="text-[10px] font-bold text-red-700 mb-0.5 uppercase">Security Verification</p>
-                <p className="text-[10px] text-gray-500">Double-check the recipient's wallet address. Assets sent on Stellar cannot be reversed.</p>
+                <p className="text-[10px] text-gray-500">Double-check the recipient{"'"}s wallet address. Assets sent on Stellar cannot be reversed.</p>
               </div>
             </div>
           </div>

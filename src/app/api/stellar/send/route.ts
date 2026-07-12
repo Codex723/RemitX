@@ -70,11 +70,12 @@ export async function POST(request: NextRequest) {
       toAmount,
       recipientAddress,
     }, 201);
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Send error:", err);
-    if (err.message?.includes("Invalid recipient")) {
-      return errorResponse(err.message, 400);
+    const message = err instanceof Error ? err.message : "Unknown error";
+    if (message.includes("Invalid recipient")) {
+      return errorResponse(message, 400);
     }
-    return errorResponse(err.message || "Failed to build transaction", 500);
+    return errorResponse(message || "Failed to build transaction", 500);
   }
 }

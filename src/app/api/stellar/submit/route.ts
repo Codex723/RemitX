@@ -65,8 +65,9 @@ export async function POST(request: NextRequest) {
       fromAmount: updated.fromAmount,
       toAmount: updated.toAmount,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Submit error:", err);
-    return errorResponse(err.message || "Failed to submit transaction", 500);
+    const message = err instanceof Error ? err.message : "Unknown error";
+    return errorResponse(message, 500);
   }
 }
