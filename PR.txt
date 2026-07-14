@@ -1,21 +1,39 @@
 # Pull Request Summary
 
-## Branch: `cleanup/remove-default-svgs`
+## Branch: `feature/persist-stellar-publickey`
 
 ### Changes Made
 
-1. **Removed default Vercel/Next.js starter SVG files** (5 files deleted):
-   - `public/file.svg`
-   - `public/globe.svg`
-   - `public/next.svg`
-   - `public/vercel.svg`
-   - `public/window.svg`
+1. **Main Implementation** (`src/app/api/stellar/account/route.ts`):
+   - Added `db` import from `@/lib/db`
+   - Added check for existing `stellarPublicKey` - returns 409 Conflict if user already has one
+   - Added `db.user.update()` call to persist the `stellarPublicKey` to the user record after `createTestnetAccount()` succeeds
+   - Removed the TODO(contributor) comment since the feature is now implemented
 
-2. **Added `vercel.json`** to fix Vercel deployment build failure:
-   - Configures the framework as `nextjs`
-   - Sets the build command to `next build`
-   - Sets the output directory to `.next` (Next.js default)
+2. **Test Suite** (`src/app/api/stellar/account/route.test.ts`):
+   - Created comprehensive test suite with 4 test cases covering all acceptance criteria:
+     - Returns 401 when user is not authenticated
+     - Returns 409 when user already has a stellarPublicKey
+     - Creates a Stellar account and updates user record when user has no stellarPublicKey
+     - Returns 500 when createTestnetAccount fails
 
-### Purpose
-- Clean up unnecessary starter files that have no value to the RemitX project
-- Fix Vercel deployment error: "No Output Directory named 'dist' found after the Build completed"
+3. **Infrastructure**:
+   - Added `vitest.config.ts` for test configuration
+   - Added `src/test/setup.ts` for test environment setup
+   - Updated `package.json` with `test` and `test:api` scripts
+   - Updated `.github/workflows/backendci.yml` to run API tests in CI
+   - Added `.github/workflows/contracts.yml` for Rust/Soroban contract tests
+   - Added `.github/workflows/frontend.yml` for frontend CI (lint, test, build)
+
+4. **Bug Fixes**:
+   - Fixed pre-existing contract compilation errors in `contracts/escrow/src/lib.rs` (added `.clone()` to `escrow_id` in `release()` and `refund()` functions)
+   - Fixed pre-existing test file errors in `contracts/escrow/src/test.rs` (removed unused imports)
+   - Updated `.gitignore` to include Rust and vitest directories
+
+### Acceptance Criteria
+- [x] User.stellarPublicKey is set after calling POST /api/stellar/account
+- [x] Returns 409 if user already has a stellarPublicKey
+- [x] Covered by a route test
+
+### How to Test
+Run `npm run test` to execute the test suite.

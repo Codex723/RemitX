@@ -10,6 +10,11 @@
 !.yarn/releases
 !.yarn/versions
 
+# Rust
+contracts/escrow/Cargo.lock
+contracts/escrow/target/
+.vitest/
+
 # testing
 /coverage
 

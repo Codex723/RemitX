@@ -8,7 +8,7 @@ on:
       - 'prisma/**'
       - 'package.json'
       - 'package-lock.json'
-      - '.github/workflows/backend-ci.yml'
+      - '.github/workflows/backendci.yml'
   pull_request:
     branches: [main]
     paths:
@@ -16,7 +16,7 @@ on:
       - 'prisma/**'
       - 'package.json'
       - 'package-lock.json'
-      - '.github/workflows/backend-ci.yml'
+      - '.github/workflows/backendci.yml'
 
 jobs:
   backend:
@@ -50,7 +50,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
 
       - name: Install dependencies
@@ -68,7 +68,6 @@ jobs:
       - name: Generate Prisma client
         run: npx prisma generate
 
-      # Uncomment once you have API route tests (e.g. via Vitest + supertest,
-      # or Next.js route handler tests hitting the local Postgres above)
-      # - name: Run API tests
-      #   run: npm run test:api -- --ci
+      # Run API route tests
+      - name: Run API tests
+        run: npm run test -- --ci
