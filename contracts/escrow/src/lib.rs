@@ -22,7 +22,7 @@
 //! See `contracts/escrow/README.md` for the full discussion.
 
 #![no_std]
-use soroban_sdk::{contract, contractimpl, Address, BytesN, Env, Symbol, Vec};
+use soroban_sdk::{contract, contractimpl, Address, BytesN, Env};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 #[soroban_sdk::contracttype]
@@ -113,7 +113,7 @@ impl EscrowContract {
         let state: EscrowState = env
             .storage()
             .instance()
-            .get(&EscrowDataKey::Escrow(escrow_id))
+            .get(&EscrowDataKey::Escrow(escrow_id.clone()))
             .expect("Escrow not found");
 
         // Stub: just marks as released without any transfer or auth check
@@ -138,7 +138,7 @@ impl EscrowContract {
         let state: EscrowState = env
             .storage()
             .instance()
-            .get(&EscrowDataKey::Escrow(escrow_id))
+            .get(&EscrowDataKey::Escrow(escrow_id.clone()))
             .expect("Escrow not found");
 
         // TODO(contributor): Implement the time-check + transfer.
