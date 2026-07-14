@@ -1,0 +1,33 @@
+name: Contracts CI (Rust / Soroban)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'contracts/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'contracts/**'
+
+jobs:
+  contracts:
+    name: Rust Tests (escrow contract)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install cargo-soroban
+        run: |
+          cargo install --locked soroban-cli
+
+      - name: Build and test escrow contract
+        working-directory: ./contracts/escrow
+        run: cargo test

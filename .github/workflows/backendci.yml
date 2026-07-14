@@ -8,7 +8,7 @@ on:
       - 'prisma/**'
       - 'package.json'
       - 'package-lock.json'
-      - '.github/workflows/backend-ci.yml'
+      - '.github/workflows/backendci.yml'
   pull_request:
     branches: [main]
     paths:
@@ -16,7 +16,7 @@ on:
       - 'prisma/**'
       - 'package.json'
       - 'package-lock.json'
-      - '.github/workflows/backend-ci.yml'
+      - '.github/workflows/backendci.yml'
 
 jobs:
   backend:
