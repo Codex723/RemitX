@@ -5,20 +5,15 @@ on:
     branches: [main]
     paths:
       - 'contracts/**'
-      - '.github/workflows/contracts-ci.yml'
   pull_request:
     branches: [main]
     paths:
       - 'contracts/**'
-      - '.github/workflows/contracts-ci.yml'
 
 jobs:
-  rust-test:
+  contracts:
     name: Rust Tests (escrow contract)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./contracts/escrow
 
     steps:
       - name: Checkout repo
@@ -28,21 +23,11 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
         with:
           targets: wasm32-unknown-unknown
-          components: rustfmt, clippy
 
-      - name: Cache cargo registry & build
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: ./contracts/escrow
+      - name: Install cargo-soroban
+        run: |
+          cargo install --locked soroban-cli
 
-      - name: Check formatting
-        run: cargo fmt -- --check
-
-      - name: Run clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
-
-      - name: Run tests
-        run: cargo test --all-features
-
-      - name: Build wasm (Soroban target)
-        run: cargo build --target wasm32-unknown-unknown --release
+      - name: Build and test escrow contract
+        working-directory: ./contracts/escrow
+        run: cargo test

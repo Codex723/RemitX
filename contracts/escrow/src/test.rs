@@ -10,9 +10,6 @@
 
 #![cfg(test)]
 
-use super::*;
-use soroban_sdk::{Env, IntoVal};
-
 // TODO(contributor): Write tests once the contract functions are implemented.
 // Example test structure:
 //
